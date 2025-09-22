@@ -14,5 +14,6 @@ public class AadApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		System.out.println("Ejecutando lógica dentro del método run() del microservicio ADD");
+
 	}
 }
