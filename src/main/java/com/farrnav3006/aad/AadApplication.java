@@ -14,7 +14,10 @@ public class AadApplication implements CommandLineRunner {
 	}
 	@Override
 	public void run(String... args) throws Exception {
-		log.info("Lombok ON");
+		log.info("---MENU---");
+		log.info("1.- Insertar nuevos registros");
+		log.info("2.- Consultar un alumno directamente por su posición en el fichero");
+		log.info("3.- Modificar la nota de un alumno sin necesidad de reescribir todo el fichero");
 	}
 }
 
