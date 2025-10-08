@@ -31,8 +31,8 @@ public class Act_1_2 implements CommandLineRunner {
         boolean salir = false;
         while (!salir) {
             log.info("\n----- MENÚ -----");
-            log.info("1. Insertar nuevo alumno (acceso secuencial)");
-            log.info("2. Consultar alumno por posición (acceso aleatorio)");
+            log.info("1. Insertar nuevo alumno");
+            log.info("2. Consultar alumno por posición");
             log.info("3. Modificar nota de un alumno");
             log.info("4. Salir");
             log.info("Elige una opción:");
@@ -58,6 +58,7 @@ public class Act_1_2 implements CommandLineRunner {
                 case 4:
                     salir = true;
                     log.info("Saliendo del programa...");
+                    System.exit(0); //Para cerrarlo
                     break;
                 default:
                     log.warn("Opción no válida, intentalo de nuevo");
@@ -72,6 +73,7 @@ public class Act_1_2 implements CommandLineRunner {
 
             log.info("Introduce el ID del alumno:");
             int id = scanner.nextInt();
+            scanner.nextLine(); //Limpia el salto de línea
 
             log.info("Introduce el nombre (máx 20 caracteres):");
             String nombre = scanner.nextLine();
@@ -134,10 +136,10 @@ public class Act_1_2 implements CommandLineRunner {
     }
 
     public static void modificarNota() {
-        log.info("Introduce la posición del alumno:");
-        int pos;
+        log.info("Introduce la posición del alumno (empezando desde 0):");
+        int posicion;
         try {
-            pos = scanner.nextInt();
+            posicion = scanner.nextInt();
         } catch (NumberFormatException e) {
             log.warn("Número inválido");
             return;
@@ -153,7 +155,7 @@ public class Act_1_2 implements CommandLineRunner {
         }
 
         try (RandomAccessFile raf = new RandomAccessFile(NombreFichero, "rw")) { //Puede leerlo y escribrlo
-            long posicionArchivo = pos * Contenido + 4 + (2 * NombreLong); //Salta id + nombre
+            long posicionArchivo = posicion * Contenido + 4 + (2 * NombreLong); //Salta id + nombre
 
             if (posicionArchivo >= raf.length()) {
                 log.warn("No existe ningún alumno en esa posición");
@@ -163,7 +165,7 @@ public class Act_1_2 implements CommandLineRunner {
             raf.seek(posicionArchivo);
             raf.writeDouble(nuevaNota);
 
-            log.info("Nota modificada correctamente para el alumno en posición" + pos);
+            log.info("Nota modificada correctamente para el alumno en posición " + posicion);
 
         } catch (IOException e) {
             log.error("Error al modificar nota: " + e.getMessage());
