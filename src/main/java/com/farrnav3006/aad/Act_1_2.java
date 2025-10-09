@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Scanner;
@@ -13,10 +12,10 @@ import java.util.Scanner;
 @SpringBootApplication
 public class Act_1_2 implements CommandLineRunner {
 
-    private static final String NombreFichero = "alumnos.dat";
-    private static final int NombreLong = 20;
-    private static final int Contenido = 4 + (2 * NombreLong) + 8; //Id + nombre + nota
-    //Cada alumno ocupa 52 bytes, de los cuales 40 son del nombre porque cada char ocupa 2 bytes, mientras que un double ocupa 8 bytes
+    private static final String FileName = "students.dat";
+    private static final int NameLength = 20;
+    private static final int RecordSize = 4 + (2 * NameLength) + 8; //Id + name + grade
+    //Each student record takes 52 bytes, of which 40 are for the name because each char takes 2 bytes, while a double takes 8 bytes
 
     public static Scanner scanner = new Scanner(System.in);
 
@@ -26,149 +25,161 @@ public class Act_1_2 implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        log.info("=== GESTIÓN DE ALUMNOS ===");
+        log.info("=== STUDENT MANAGEMENT ===");
 
-        boolean salir = false;
-        while (!salir) {
-            log.info("\n----- MENÚ -----");
-            log.info("1. Insertar nuevo alumno");
-            log.info("2. Consultar alumno por posición");
-            log.info("3. Modificar nota de un alumno");
-            log.info("4. Salir");
-            log.info("Elige una opción:");
+        boolean exit = false;
+        while (!exit) {
+            log.info("\n----- MENU -----");
+            log.info("1. Insert new student");
+            log.info("2. Consult student by position");
+            log.info("3. Modify student's grade");
+            log.info("4. Exit");
+            log.info("Choose an option:");
 
-            int opcion;
+            int option;
             try {
-                opcion = scanner.nextInt();
+                option = Integer.parseInt(scanner.nextLine());
             } catch (NumberFormatException e) {
-                log.warn("Por favor, introduce un número válido.");
+                log.warn("Please enter a valid number.");
                 continue;
             }
 
-            switch (opcion) {
+            switch (option) {
                 case 1:
-                    insertarAlumno();
+                    insertStudent();
                     break;
                 case 2:
-                    consultarAlumno();
+                    consultStudent();
                     break;
                 case 3:
-                    modificarNota();
+                    modifyGrade();
                     break;
                 case 4:
-                    salir = true;
-                    log.info("Saliendo del programa...");
-                    System.exit(0); //Para cerrarlo
+                    exit = true;
+                    log.info("Exiting the program...");
+                    System.exit(0); //To close the app
                     break;
                 default:
-                    log.warn("Opción no válida, intentalo de nuevo");
+                    log.warn("Invalid option, please try again");
                     break;
             }
         }
     }
 
-    public static void insertarAlumno() {
-        try (RandomAccessFile raf = new RandomAccessFile(NombreFichero, "rw")) { //Puede leerlo y escribirlo
-            raf.seek(raf.length()); //Puntero en el fin del fichero
+    public static void insertStudent() {
+        try (RandomAccessFile raf = new RandomAccessFile(FileName, "rw")) { //Can read and write
+            raf.seek(raf.length()); //Pointer at the end of the file
 
-            log.info("Introduce el ID del alumno:");
-            int id = scanner.nextInt();
-            scanner.nextLine(); //Limpia el salto de línea
+            log.info("Enter the student's ID:");
+            int id = Integer.parseInt(scanner.nextLine());
 
-            log.info("Introduce el nombre (máx 20 caracteres):");
-            String nombre = scanner.nextLine();
+            log.info("Enter the name (max 20 characters):");
+            String name = scanner.nextLine();
 
-            log.info("Introduce la nota:");
-            double nota = scanner.nextDouble();
+            double grade;
+            while (true) {
+                log.info("Enter the grade (greater than 0 and less or equal to 10):");
+                try {
+                    grade = Double.parseDouble(scanner.nextLine());
+                    if (grade > 0 && grade <= 10) {
+                        break;
+                    } else {
+                        log.warn("Grade must be greater than 0 and less or equal to 10. Try again");
+                    }
+                } catch (NumberFormatException e) {
+                    log.warn("Invalid grade format. Try again");
+                }
+            }
 
-            //Escribe en el registro
+            //Write to the record
             raf.writeInt(id);
 
-            StringBuilder sb = new StringBuilder(nombre);
-            sb.setLength(NombreLong); //Rellena o recorta
-            raf.writeChars(sb.toString()); //Ocupa 2 bytes por cada letra
-            raf.writeDouble(nota); //Ocupa 8 bytes
+            StringBuilder sb = new StringBuilder(name);
+            sb.setLength(NameLength); //Pad or trim
+            raf.writeChars(sb.toString()); //Each char takes 2 bytes
+            raf.writeDouble(grade); //Takes 8 bytes
 
-            log.info("Alumno insertado correctamente");
+            log.info("Student inserted successfully");
 
         } catch (IOException e) {
-            log.error("Error al insertar alumno: " + e.getMessage());
+            log.error("Error inserting student: " + e.getMessage());
         } catch (NumberFormatException e) {
-            log.warn("Entrada no válida");
+            log.warn("Invalid input");
         }
     }
 
-    public static void consultarAlumno() {
-        log.info("Introduce la posición del alumno (empezando desde 0):");
-        int posicion;
+    public static void consultStudent() {
+        log.info("Enter the position of the student (starting from 0):");
+        int position;
         try {
-            posicion = scanner.nextInt();
+            position = Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
-            log.warn("Número inválido");
+            log.warn("Invalid number");
             return;
         }
 
-        try (RandomAccessFile raf = new RandomAccessFile(NombreFichero, "r")) { //Solo lo puede leer
-            long posicionArchivo = posicion * Contenido; //Los alumnos empiezan cada 52 bytes 0-52-104-...
+        try (RandomAccessFile raf = new RandomAccessFile(FileName, "r")) { //Read-only
+            long filePosition = position * RecordSize; //Students start every 52 bytes: 0-52-104-...
 
-            if (posicionArchivo >= raf.length()) {
-                log.warn("No existe ningún alumno en esa posición");
+            if (filePosition >= raf.length()) {
+                log.warn("No student exists at that position");
                 return;
             }
 
-            raf.seek(posicionArchivo); //Va a la posicion del byte
+            raf.seek(filePosition); //Go to byte position
 
             int id = raf.readInt();
 
-            char[] nombreChars = new char[NombreLong];
-            for (int i = 0; i < NombreLong; i++) {
-                nombreChars[i] = raf.readChar();
+            char[] nameChars = new char[NameLength];
+            for (int i = 0; i < NameLength; i++) {
+                nameChars[i] = raf.readChar();
             }
-            String nombre = new String(nombreChars).trim();
+            String name = new String(nameChars).trim();
 
-            double nota = raf.readDouble();
+            double grade = raf.readDouble();
 
-            log.info(String.format("Alumno encontrado: ID: %d | Nombre: %s | Nota: %.2f", id, nombre, nota));
+            log.info(String.format("Student found: ID: %d | Name: %s | Grade: %.2f", id, name, grade));
 
         } catch (IOException e) {
-            log.error("Error al leer alumno: " + e.getMessage());
+            log.error("Error reading student: " + e.getMessage());
         }
     }
 
-    public static void modificarNota() {
-        log.info("Introduce la posición del alumno (empezando desde 0):");
-        int posicion;
+    public static void modifyGrade() {
+        log.info("Enter the position of the student (starting from 0):");
+        int position;
         try {
-            posicion = scanner.nextInt();
+            position = Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
-            log.warn("Número inválido");
+            log.warn("Invalid number");
             return;
         }
 
-        log.info("Introduce la nueva nota:");
-        double nuevaNota;
+        log.info("Enter the new grade:");
+        double newGrade;
         try {
-            nuevaNota = scanner.nextDouble();
+            newGrade = Double.parseDouble(scanner.nextLine());
         } catch (NumberFormatException e) {
-            log.warn("Nota inválida");
+            log.warn("Invalid grade");
             return;
         }
 
-        try (RandomAccessFile raf = new RandomAccessFile(NombreFichero, "rw")) { //Puede leerlo y escribrlo
-            long posicionArchivo = posicion * Contenido + 4 + (2 * NombreLong); //Salta id + nombre
+        try (RandomAccessFile raf = new RandomAccessFile(FileName, "rw")) { //Can read and write
+            long filePosition = position * RecordSize + 4 + (2 * NameLength); //Skip id + name
 
-            if (posicionArchivo >= raf.length()) {
-                log.warn("No existe ningún alumno en esa posición");
+            if (filePosition >= raf.length()) {
+                log.warn("No student exists at that position");
                 return;
             }
 
-            raf.seek(posicionArchivo);
-            raf.writeDouble(nuevaNota);
+            raf.seek(filePosition);
+            raf.writeDouble(newGrade);
 
-            log.info("Nota modificada correctamente para el alumno en posición " + posicion);
+            log.info("Grade successfully updated for student at position " + position);
 
         } catch (IOException e) {
-            log.error("Error al modificar nota: " + e.getMessage());
+            log.error("Error modifying grade: " + e.getMessage());
         }
     }
 }
+
