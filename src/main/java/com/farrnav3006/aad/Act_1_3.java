@@ -33,61 +33,61 @@ public class Act_1_3 implements CommandLineRunner {
         String xml = "alumnos.xml";
 
         try (Scanner scanner = new Scanner(System.in)) {
-            int opcion;
+            int option;
             do {
-                log.info("===== Conversor de Alumnos =====");
-                log.info("1. Convertir a JSON");
-                log.info("2. Convertir a XML");
-                log.info("3. Salir");
-                log.info("Seleccione una opción: ");
+                log.info("===== File Converter =====");
+                log.info("1. Convert to JSON");
+                log.info("2. Convert to XML");
+                log.info("3. Exit");
+                log.info("Select an option: ");
 
-                opcion = scanInt(scanner);
+                option = scanInt(scanner);
 
-                // Leer CSV
-                List<Alumnos> alumnos = leerCSV(csv);
+                // Read CSV
+                List<Alumnos> alumnnos = readCSV(csv);
 
-                switch (opcion) {
+                switch (option) {
                     case 1:
-                        escribirJSON(alumnos, json);
-                        log.info("Fichero JSON generado correctamente: " + json);
+                        writeJSON(alumnnos, json);
+                        log.info("JSON file generated successfully: " + json);
                         break;
                     case 2:
-                        escribirXML(alumnos, xml);
-                        log.info("Fichero XML generado correctamente: " + xml);
+                        writeXML(alumnnos, xml);
+                        log.info("XML file generated successfully: " + xml);
                         break;
                     case 3:
-                        log.info("Saliendo del programa");
+                        log.info("Exiting the program");
                         break;
                     default:
-                        log.warn("Opción no válida");
+                        log.warn("Invalid option");
                 }
-            } while (opcion != 3);
+            } while (option != 3);
 
         } catch (FileNotFoundException e) {
-            log.error("No se encontró el fichero CSV: " + e.getMessage());
+            log.error("CSV file not found: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Error inesperado: " + e.getMessage(), e);
+            log.error("Unexpected error: " + e.getMessage(), e);
         }
     }
 
-    private List<Alumnos> leerCSV(String ruta) throws IOException {
-        List<Alumnos> alumnos = new ArrayList<>();
+    private List<Alumnos> readCSV(String path) throws IOException {
+        List<Alumnos> students = new ArrayList<>();
 
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(ruta))) {
-            String linea = br.readLine(); // cabecera
-            while ((linea = br.readLine()) != null) {
-                String[] partes = linea.split(",");
-                if (partes.length == 3) {
-                    int id = Integer.parseInt(partes[0].trim());
-                    String nombre = partes[1].trim();
-                    double nota = Double.parseDouble(partes[2].trim());
-                    alumnos.add(new Alumnos(id, nombre, nota));
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(path))) {
+            String line = br.readLine(); // header
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    int id = Integer.parseInt(parts[0].trim());
+                    String name = parts[1].trim();
+                    double grade = Double.parseDouble(parts[2].trim());
+                    students.add(new Alumnos(id, name, grade));
                 } else {
-                    log.warn("Línea ignorada por formato incorrecto: " + linea);
+                    log.warn("Line ignored due to incorrect format: " + line);
                 }
             }
         }
-        return alumnos;
+        return students;
     }
 
     private int scanInt(Scanner scanner) {
@@ -101,13 +101,13 @@ public class Act_1_3 implements CommandLineRunner {
         }
     }
 
-    private void escribirJSON(List<Alumnos> alumnos, String ruta) throws IOException {
+    private void writeJSON(List<Alumnos> students, String path) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.writerWithDefaultPrettyPrinter().writeValue(new File(ruta), alumnos);
+        mapper.writerWithDefaultPrettyPrinter().writeValue(new File(path), students);
     }
 
-    private void escribirXML(List<Alumnos> alumnos, String ruta) throws IOException {
+    private void writeXML(List<Alumnos> students, String path) throws IOException {
         XmlMapper xmlMapper = new XmlMapper();
-        xmlMapper.writerWithDefaultPrettyPrinter().writeValue(new File(ruta), alumnos);
+        xmlMapper.writerWithDefaultPrettyPrinter().writeValue(new File(path), students);
     }
 }

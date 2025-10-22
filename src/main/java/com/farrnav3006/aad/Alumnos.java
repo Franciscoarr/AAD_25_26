@@ -2,25 +2,25 @@ package com.farrnav3006.aad;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@JacksonXmlRootElement(localName = "alumnos")
+@JacksonXmlRootElement(localName = "students")
 public class Alumnos {
 
     private int id;
-    private String nombre;
-    private double nota;
+    private String name;
+    private double grade;
 
-    // Constructor vacío
+    // No-args constructor
     public Alumnos() {
     }
 
-    // Constructor con parámetros
-    public Alumnos(int id, String nombre, double nota) {
+    // Constructor with parameters
+    public Alumnos(int id, String name, double grade) {
         this.id = id;
-        this.nombre = nombre;
-        this.nota = nota;
+        this.name = name;
+        this.grade = grade;
     }
 
-    // Getters y setters
+    // Getters and setters
     public int getId() {
         return id;
     }
@@ -29,19 +29,20 @@ public class Alumnos {
         this.id = id;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getName() {
+        return name;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public double getNota() {
-        return nota;
+    public double getGrade() {
+        return grade;
     }
 
-    public void setNota(double nota) {
-        this.nota = nota;
+    public void setGrade(double grade) {
+        this.grade = grade;
     }
 }
+

@@ -1,17 +1,17 @@
 <ArrayList>
   <item>
     <id>1</id>
-    <nombre>Ana</nombre>
-    <nota>8.5</nota>
+    <name>Ana</name>
+    <grade>8.5</grade>
   </item>
   <item>
     <id>2</id>
-    <nombre>Juan</nombre>
-    <nota>6.7</nota>
+    <name>Juan</name>
+    <grade>6.7</grade>
   </item>
   <item>
     <id>3</id>
-    <nombre>Luis</nombre>
-    <nota>9.0</nota>
+    <name>Luis</name>
+    <grade>9.0</grade>
   </item>
 </ArrayList>
