@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -38,10 +39,9 @@ public class Act_1_3 implements CommandLineRunner {
                 log.info("1. Convertir a JSON");
                 log.info("2. Convertir a XML");
                 log.info("3. Salir");
-                System.out.print("Seleccione una opción: ");
+                log.info("Seleccione una opción: ");
 
-                opcion = scanner.nextInt();
-
+                opcion = scanInt(scanner);
 
                 // Leer CSV
                 List<Alumnos> alumnos = leerCSV(csv);
@@ -55,9 +55,11 @@ public class Act_1_3 implements CommandLineRunner {
                         escribirXML(alumnos, xml);
                         log.info("Fichero XML generado correctamente: " + xml);
                         break;
-                    default:
-                        log.warn("Opción no válida. Saliendo del programa.");
+                    case 3:
+                        log.info("Saliendo del programa");
                         break;
+                    default:
+                        log.warn("Opción no válida");
                 }
             } while (opcion != 3);
 
@@ -86,6 +88,17 @@ public class Act_1_3 implements CommandLineRunner {
             }
         }
         return alumnos;
+    }
+
+    private int scanInt(Scanner scanner) {
+        while (true) {
+            try {
+                return scanner.nextInt();
+            } catch (InputMismatchException e) {
+                log.warn("Please enter a valid number.");
+                scanner.nextLine();
+            }
+        }
     }
 
     private void escribirJSON(List<Alumnos> alumnos, String ruta) throws IOException {
