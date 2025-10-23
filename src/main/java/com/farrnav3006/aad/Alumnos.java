@@ -6,11 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@JacksonXmlRootElement(localName = "students")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
+@JacksonXmlRootElement(localName = "students") //XML root tag will be students
+@Data //Generate Setters and Getters
+@NoArgsConstructor //Generate constructor with no arguments
+@AllArgsConstructor //Generate constructor with arguments
+@ToString //Generate ToString method
 
 public class Alumnos {
 
