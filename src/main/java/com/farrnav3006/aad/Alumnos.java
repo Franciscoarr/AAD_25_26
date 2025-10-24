@@ -1,12 +1,10 @@
 package com.farrnav3006.aad;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@JacksonXmlRootElement(localName = "students") //XML root tag will be students
 @Data //Generate Setters and Getters
 @NoArgsConstructor //Generate constructor with no arguments
 @AllArgsConstructor //Generate constructor with arguments

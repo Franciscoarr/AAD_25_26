@@ -1,4 +1,4 @@
-<ArrayList>
+<students>
   <item>
     <id>1</id>
     <name>Ana</name>
@@ -14,4 +14,4 @@
     <name>Luis</name>
     <grade>9.0</grade>
   </item>
-</ArrayList>
+</students>

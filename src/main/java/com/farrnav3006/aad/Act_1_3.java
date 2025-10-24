@@ -111,6 +111,7 @@ public class Act_1_3 implements CommandLineRunner {
     //Convert CSV to XML
     private void writeXML(List<Alumnos> students, String path) throws IOException {
         XmlMapper xmlMapper = new XmlMapper(); //Jackson XML processor
-        xmlMapper.writerWithDefaultPrettyPrinter().writeValue(new File(path), students); //Write formatted XML
+
+        xmlMapper.writerWithDefaultPrettyPrinter().withRootName("students").writeValue(new File(path), students); //Write formatted XML and sets the root XML element name to <students>
     }
 }

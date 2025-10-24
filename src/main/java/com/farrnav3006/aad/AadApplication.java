@@ -14,7 +14,6 @@ public class AadApplication implements CommandLineRunner {
 	}
 	@Override
 	public void run(String... args) throws Exception {
-		log.info("Lombok ON");
 	}
 }
 
