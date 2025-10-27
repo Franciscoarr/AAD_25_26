@@ -77,7 +77,7 @@ public class AadApplication implements CommandLineRunner {
     }
 
     //Add a new event to log
-    //Opens the log file for writing (append mode) using the selected encoding
+
     private static void AddEvents(Scanner scanner) {
         String message = "";
 
@@ -96,6 +96,7 @@ public class AadApplication implements CommandLineRunner {
         String line = "[" + date + "] " + message;
 
         //Write to log file
+        //Opens the log file for writing (append mode) using the selected encoding
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(log_filename, true), charset))) {
             bw.write(line);
             bw.newLine();
