@@ -21,8 +21,8 @@ public class AadApplication implements CommandLineRunner {
         SpringApplication.run(AadApplication.class, args);
     }
 
-    private static String log_filename = "app.log"; // Log file name
-    private static Charset charset = StandardCharsets.UTF_8; // Default file encoding
+    private static String log_filename = "app.log"; //Log file name
+    private static Charset charset = StandardCharsets.UTF_8; //Default file encoding
 
     @Override
     public void run(String... args) throws Exception {
@@ -39,7 +39,7 @@ public class AadApplication implements CommandLineRunner {
                 log.info("Select an option: ");
 
                 option = scanInt(scanner);
-                scanner.nextLine(); // Clear buffer
+                scanner.nextLine(); //Clear buffer
 
                 switch (option) {
                     case 1:
@@ -76,8 +76,8 @@ public class AadApplication implements CommandLineRunner {
         }
     }
 
-    // Add a new event to log
-    // Opens the log file for writing (append mode) using the selected encoding
+    //Add a new event to log
+    //Opens the log file for writing (append mode) using the selected encoding
     private static void AddEvents(Scanner scanner) {
         String message = "";
 
@@ -91,11 +91,11 @@ public class AadApplication implements CommandLineRunner {
             }
         }
 
-        // Current date and time
+        //Current date and time
         String date = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
         String line = "[" + date + "] " + message;
 
-        // Write to log file
+        //Write to log file
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(log_filename, true), charset))) {
             bw.write(line);
             bw.newLine();
@@ -110,8 +110,8 @@ public class AadApplication implements CommandLineRunner {
         log.info("Enter event date (YYYY/MM/DD): ");
         String date = scanner.nextLine();
 
-        // Read file and search by date
-        // Opens the log file for reading using the selected character encoding
+        //Read file and search by date
+        //Opens the log file for reading using the selected character encoding
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(log_filename), charset))) {
             String line;
             boolean found = false;
@@ -123,7 +123,7 @@ public class AadApplication implements CommandLineRunner {
                 }
             }
 
-            // No results found
+            //No results found
             if (!found) {
                 log.warn("No events found for that date");
             }
@@ -132,11 +132,11 @@ public class AadApplication implements CommandLineRunner {
         }
     }
 
-    // Change log file encoding
+    //Change log file encoding
     private static void ChangeEncoding(Scanner scanner) {
         int option2;
         do {
-            // Encoding menu options
+            //Encoding menu options
             log.info("===== Change encoding =====");
             log.info("Current encoding: " + charset.displayName());
             log.info("1. UTF-8");
