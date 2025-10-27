@@ -5,10 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -20,19 +17,20 @@ import java.util.Scanner;
 @Slf4j
 public class AadApplication implements CommandLineRunner {
 
-	public static void main(String[] args) {
-		SpringApplication.run(AadApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AadApplication.class, args);
+    }
 
-    private static String log_filename = "app.log";
-    private static Charset charset = StandardCharsets.UTF_8; // Codificación por defecto
+    private static String log_filename = "app.log"; // Log file name
+    private static Charset charset = StandardCharsets.UTF_8; // Default file encoding
 
-	@Override
-	public void run(String... args) throws Exception {
+    @Override
+    public void run(String... args) throws Exception {
 
         try (Scanner scanner = new Scanner(System.in)) {
             int option;
             do {
+                // Main menu options
                 log.info("===== Log Manager =====");
                 log.info("1. Add events");
                 log.info("2. Filter events");
@@ -41,20 +39,22 @@ public class AadApplication implements CommandLineRunner {
                 log.info("Select an option: ");
 
                 option = scanInt(scanner);
-                scanner.nextLine();
+                scanner.nextLine(); // Clear buffer
 
                 switch (option) {
                     case 1:
                         AddEvents(scanner);
                         break;
                     case 2:
-
+                        FilterEvents(scanner);
                         break;
                     case 3:
                         ChangeEncoding(scanner);
                         break;
                     case 4:
-
+                        log.info("Exiting the program");
+                        System.exit(0);
+                        break;
                     default:
                         log.warn("Invalid option");
                 }
@@ -62,45 +62,81 @@ public class AadApplication implements CommandLineRunner {
         } catch (Exception e) {
             log.error("Unexpected error: " + e.getMessage(), e);
         }
-	}
+    }
 
+    // Safely read an integer input
     private static int scanInt(Scanner scanner) {
         while (true) {
             try {
                 return scanner.nextInt();
             } catch (InputMismatchException e) {
                 log.warn("Please enter a valid number");
-                scanner.nextLine();//Clear invalid input from scanner buffer
+                scanner.nextLine(); // Clear invalid input
             }
         }
     }
 
+    // Add a new event to log
+    // Opens the log file for writing (append mode) using the selected encoding
     private static void AddEvents(Scanner scanner) {
-        log.info("Introduce el mensaje del evento: ");
-        String mensaje = scanner.nextLine();
-        String fecha = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+        String message = "";
 
-        String linea = "[" + fecha + "]" + mensaje;
+        // Repeat until message is not empty
+        while (message.isBlank()) {
+            log.info("Enter the event message: ");
+            message = scanner.nextLine();
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(log_filename, charset))) {
-            bw.write(linea);
+            if (message.isBlank()) {
+                log.warn("Message cannot be empty!");
+            }
+        }
+
+        // Current date and time
+        String date = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+        String line = "[" + date + "] " + message;
+
+        // Write to log file
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(log_filename, true), charset))) {
+            bw.write(line);
             bw.newLine();
-            log.info("Event added");
+            log.info("Event added successfully");
         } catch (IOException e) {
-            log.error("Error al escribir en el archivo: " + e.getMessage());
+            log.error("Error writing log file: " + e.getMessage());
         }
     }
 
+    // Filter events by date
     private static void FilterEvents(Scanner scanner) {
-        log.info("Introduce la fecha del evento (YYYY-MM-DD): ");
-        String fecha = scanner.nextLine();
+        log.info("Enter event date (YYYY/MM/DD): ");
+        String date = scanner.nextLine();
 
+        // Read file and search by date
+        // Opens the log file for reading using the selected character encoding
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(log_filename), charset))) {
+            String line;
+            boolean found = false;
+            log.info("--- Events on " + date + " ---");
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("[" + date)) {
+                    log.info(line);
+                    found = true;
+                }
+            }
 
+            // No results found
+            if (!found) {
+                log.warn("No events found for that date");
+            }
+        } catch (IOException e) {
+            log.error("Error reading log file: " + e.getMessage());
+        }
     }
 
+    // Change log file encoding
     private static void ChangeEncoding(Scanner scanner) {
         int option2;
         do {
+            // Encoding menu options
             log.info("===== Change encoding =====");
             log.info("Current encoding: " + charset.displayName());
             log.info("1. UTF-8");
@@ -123,11 +159,9 @@ public class AadApplication implements CommandLineRunner {
                     log.info("Returning to previous menu...");
                     break;
                 default:
-                    log.warn("Invalid option, ");
+                    log.warn("Invalid option");
             }
-        }while (option2 != 3);
+        } while (option2 != 3);
     }
-
-
 }
 
