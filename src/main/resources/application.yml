@@ -1,6 +1,6 @@
-pring:
+spring:
   datasource:
-  url: jdbc:postgresql://localhost:5432/ud2db
-  username: postgres
-  password: 1234
-  driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5433/ud2db
+    username: user
+    password: pass
+    driver-class-name: org.postgresql.Driver
