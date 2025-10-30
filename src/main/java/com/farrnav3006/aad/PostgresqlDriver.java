@@ -19,7 +19,7 @@ public class PostgresqlDriver {
     @Value("${spring.datasource.password}")
     private String password;
     // Si no se define, por defecto usamos el driver de PostgreSQL
-    @Value("${spring.datasource.driver-classname:org.postgresql.Driver}")
+    @Value("${spring.datasource.driver-class-name:org.postgresql.Driver}")
     private String driverClassName;
 
     public Connection getConnection() throws SQLException {
