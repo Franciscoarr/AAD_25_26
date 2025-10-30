@@ -1,20 +1,17 @@
 package com.farrnav3006.aad;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 
 @SpringBootApplication
+@RequiredArgsConstructor
 public class JdbcApplication implements CommandLineRunner {
-    private final DataSource dataSource;
-
-    public JdbcApplication(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
+    private final PostgresqlDriver dataSource;
+    
     public static void main(String[] args) {
         SpringApplication.run(JdbcApplication.class, args);
     }
