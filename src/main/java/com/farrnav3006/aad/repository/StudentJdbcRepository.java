@@ -4,6 +4,7 @@ import com.farrnav3006.aad.model.Student;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
 
 @Repository
@@ -125,7 +126,7 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         s.setFirstName(rs.getString("first_name"));
         s.setLastName(rs.getString("last_name"));
         Date bd = rs.getDate("birth_date");
-        s.setBirthDate(bd != null ? bd.toLocalDate() : null);
+        s.setBirthDate(bd != null ? String.valueOf(bd.toLocalDate()) : null);
         // NUMERIC maps fine to BigDecimal; if you use Double in the model, adjust accordingly:
         // For example, rs.getBigDecimal("average_grade") != null ?rs.getBigDecimal("average_grade").doubleValue() : null
         s.setAverageGrade(rs.getBigDecimal("average_grade") != null
