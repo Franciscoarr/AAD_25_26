@@ -36,11 +36,11 @@ public class PostgresqlDriver {
 
     @PostConstruct
     public void init() {
-        log.info("🛠️ Initializing database...");
+        log.info("Initializing database...");
         for (Resource script : scripts) {
             executeSql(script);
         }
-        log.info("✅ Database initialized successfully!");
+        log.info("Database initialized successfully!");
     }
 
     private void executeSql(Resource resource) {
@@ -49,9 +49,9 @@ public class PostgresqlDriver {
              BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
             String sql = reader.lines().collect(Collectors.joining("\n"));
             stmt.execute(sql);
-            log.info("📄 Executed script: {}", resource.getClass());
+            log.info("Executed script: {}", resource.getClass());
         } catch (Exception e) {
-            log.error("⚠️ Error executing script {}: {}",
+            log.error("Error executing script {}: {}",
                     resource.getClass(), e.getMessage());
         }
     }
