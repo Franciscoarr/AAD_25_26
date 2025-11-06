@@ -1,5 +1,6 @@
 package com.farrnav3006.aad.repository;
 
+import com.farrnav3006.aad.model.Student;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
