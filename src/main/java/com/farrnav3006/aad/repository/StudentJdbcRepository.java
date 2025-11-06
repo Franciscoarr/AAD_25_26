@@ -1,10 +1,10 @@
 package com.farrnav3006.aad.repository;
 
+import com.farrnav3006.aad.PostgresqlDriver;
 import com.farrnav3006.aad.model.Student;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
 import java.sql.*;
 
 @Repository
@@ -29,20 +29,20 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
             DELETE FROM student
             WHERE id = ?
             """;
-    private final DataSource dataSource;
+    private final PostgresqlDriver postgresqlDriver;
 
-    public StudentJdbcRepository(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public StudentJdbcRepository(PostgresqlDriver postgresqlDriver) {
+        this.postgresqlDriver = postgresqlDriver;
     }
 
     @Override
     public Student create(Student entity) {
         if (entity == null) throw new IllegalArgumentException("Student cannot be null");
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, entity.getFirstName());
             ps.setString(2, entity.getLastName());
-            ps.setDate(3, entity.getBirthDate() != null ? Date.valueOf(entity.getBirthDate()) : null);
+            ps.setDate(3, entity.getBirthDate() != null ? entity.getBirthDate() : null);
             ps.setObject(4, entity.getAverageGrade(), Types.NUMERIC);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -62,7 +62,7 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         if (entity == null || entity.getId() == null) {
             throw new IllegalArgumentException("read requires a Student with non-null id");
         }
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_SELECT_BY_ID)) {
             ps.setInt(1, entity.getId());
             try (ResultSet rs = ps.executeQuery()) {
@@ -85,11 +85,11 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         if (entity == null || entity.getId() == null) {
             throw new IllegalArgumentException("update requires a Student with non-null id");
         }
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
             ps.setString(1, entity.getFirstName());
             ps.setString(2, entity.getLastName());
-            ps.setDate(3, entity.getBirthDate() != null ? Date.valueOf(entity.getBirthDate()) : null);
+            ps.setDate(3, entity.getBirthDate() != null ? entity.getBirthDate() : null);
             ps.setObject(4, entity.getAverageGrade(), Types.NUMERIC);
             ps.setInt(5, entity.getId());
             int updated = ps.executeUpdate();
@@ -108,7 +108,7 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         if (entity == null || entity.getId() == null) {
             throw new IllegalArgumentException("delete requires a Student with non-null id");
         }
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
             ps.setInt(1, entity.getId());
             int deleted = ps.executeUpdate();
@@ -126,7 +126,7 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         s.setFirstName(rs.getString("first_name"));
         s.setLastName(rs.getString("last_name"));
         Date bd = rs.getDate("birth_date");
-        s.setBirthDate(bd != null ? String.valueOf(bd.toLocalDate()) : null);
+        s.setBirthDate(bd != null ? Date.valueOf(bd.toLocalDate()) : null);
         // NUMERIC maps fine to BigDecimal; if you use Double in the model, adjust accordingly:
         // For example, rs.getBigDecimal("average_grade") != null ?rs.getBigDecimal("average_grade").doubleValue() : null
         s.setAverageGrade(rs.getBigDecimal("average_grade") != null
