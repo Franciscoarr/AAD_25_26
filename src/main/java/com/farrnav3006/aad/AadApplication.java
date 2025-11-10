@@ -43,6 +43,23 @@ public class AadApplication implements CommandLineRunner {
         // DELETE
         repo.delete(loaded);
 
+        //SEGUNDA
+        Student s2 = new Student();
+        s2.setFirstName("Ruben");
+        s2.setLastName("Dominguez");
+        s2.setBirthDate(Date.valueOf(LocalDate.of(2004, 5, 10)));
+        s2.setAverageGrade(8.7);
+        s2 = repo.create(s2);
+        // READ
+        Student probe2 = new Student();
+        probe2.setId(s.getId());
+        Student loaded2 = repo.read(probe2);
+        // UPDATE
+        loaded2.setAverageGrade(9.2);
+        repo.update(loaded2);
+        // DELETE
+        repo.delete(loaded2);
+
         log.info("Testing JDBC connection...");
         try (Connection conn = postgresqlDriver.getConnection()) {
             log.info("Connection successful: {}",
@@ -50,7 +67,7 @@ public class AadApplication implements CommandLineRunner {
             log.info("Database: {}",
                     conn.getMetaData().getDatabaseProductName());
         } catch (Exception e) {
-            System.err.println("Connection failed: " + e.getMessage());
+            log.info("Connection failed: " + e.getMessage());
         }
     }
 }

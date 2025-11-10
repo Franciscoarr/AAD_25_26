@@ -21,3 +21,13 @@ valores en la configuración de la conexión.
 
 Para probar la conexión, podemos hacer durante la creación un test para verificar que los datos son correctos y así la
 conexión se hará correctamente, y ya conectar la base de datos luego de la comprobación.
+
+--- 
+3
+3.1 Al introducir una id ya existente, salta el siguiente error: java.lang.RuntimeException: Error creating Student
+Caused by: org.postgresql.util.PSQLException: ERROR: duplicate key value violates unique constraint "student_pkey"
+3.2 Al hacer el update con una columna inexistente,sale lo siguiente: java.lang.RuntimeException: Error deleting Student
+id=5
+Caused by: org.postgresql.util.PSQLException: ERROR: column "ae" does not exist
+3.3 Al eliminar el WHERE, salta el siguiente error: java.lang.RuntimeException: Error deleting Student id=5
+Caused by: org.postgresql.util.PSQLException: El índice de la columna está fuera de rango: 1, número de columnas: 0.

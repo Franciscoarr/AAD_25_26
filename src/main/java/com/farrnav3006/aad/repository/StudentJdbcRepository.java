@@ -40,6 +40,7 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         if (entity == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+            conn.setAutoCommit(false);
             ps.setString(1, entity.getFirstName());
             ps.setString(2, entity.getLastName());
             ps.setDate(3, entity.getBirthDate() != null ? entity.getBirthDate() : null);
@@ -50,6 +51,7 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
                     entity.setId(keys.getInt(1));
                 }
             }
+            conn.commit();
             log.info("create OK: {}", entity);
             return entity;
         } catch (SQLException e) {
@@ -64,6 +66,7 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         }
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_SELECT_BY_ID)) {
+            conn.setAutoCommit(false);
             ps.setInt(1, entity.getId());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
