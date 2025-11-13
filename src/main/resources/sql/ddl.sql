@@ -17,3 +17,4 @@ CREATE TABLE matricula (
  PRIMARY KEY (id_alumno, id_modulo)
 );
 
+
