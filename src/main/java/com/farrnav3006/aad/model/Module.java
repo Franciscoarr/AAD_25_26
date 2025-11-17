@@ -13,6 +13,5 @@ public class Module {
     private Integer id;
     private String code;
     private String name;
-    private String email;
     private Integer hours;
 }

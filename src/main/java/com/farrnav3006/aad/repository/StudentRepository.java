@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @Slf4j
@@ -14,34 +16,38 @@ import java.sql.*;
 public class StudentRepository implements CrudRepository<Student> {
     // SQL statements
     private static final String SQL_INSERT = """
-            INSERT INTO student (first_name, last_name, birth_date, average_grade)
+            INSERT INTO alumno (nif, nombre, email)
             VALUES (?, ?, ?, ?)
             """;
-    private static final String SQL_SELECT_BY_ID = """
-            SELECT id, first_name, last_name, birth_date, average_grade
-            FROM student
-            WHERE id = ?
+    private static final String SQL_FINDALL = """
+            SELECT *
+            FROM alumno
+            """;
+    private static final String SQL_FINDBYID = """
+            SELECT *
+            FROM alumno
+            WHERE id_alumno = ?
             """;
     private static final String SQL_UPDATE = """
-            UPDATE student
-            SET first_name = ?, last_name = ?, birth_date = ?, average_grade = ?
-            WHERE id = ?
+            UPDATE alumno
+            SET nif = ?, nombre = ?, email = ?
+            WHERE id_alumno = ?
             """;
     private static final String SQL_DELETE = """
-            DELETE FROM student
-            WHERE id = ?
+            DELETE FROM alumno
+            WHERE id_alumno = ?
             """;
     private final PostgresqlDriver postgresqlDriver;
 
 
     @Override
-    public Student create(Student entity) {
+    public Student insert(Student entity) {
         if (entity == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, entity.getName());
-            ps.setString(2, entity.getNif());
+            ps.setString(1, entity.getNif());
+            ps.setString(2, entity.getName());
             ps.setString(3, entity.getEmail());
             ps.setString(4, entity.getCurse());
             ps.setObject(5, entity.getModules(), Types.ARRAY);
@@ -59,25 +65,49 @@ public class StudentRepository implements CrudRepository<Student> {
     }
 
     @Override
-    public Student read(Student entity) {
+    public List<Student> findAll(){
+        List<Student> students = new ArrayList<>();
+        try (Connection conn = postgresqlDriver.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SQL_FINDALL)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Student student = new Student(
+                            rs.getInt("id_alumno"),
+                            rs.getString("nif"),
+                            rs.getString("nombre"),
+                            rs.getString("email"),
+                            rs.getString("curse"),
+                            new ArrayList<>() // Los módulos se cargan por separado
+                    );
+                    students.add(student);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding Student ", e);
+        }
+        return students;
+    }
+
+    @Override
+    public Student findById(Student entity) {
         if (entity == null || entity.getId() == null) {
-            throw new IllegalArgumentException("read requires a Student with non-null id");
+            throw new IllegalArgumentException("findById requires a Student with non-null id");
         }
         try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_SELECT_BY_ID)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
             ps.setInt(1, entity.getId());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Student found = mapRow(rs);
-                    log.info("read OK: {}", found);
-                    return found;
+                    Student s = mapRow(rs);
+                    log.info("findById OK: {}", s);
+                    return s;
                 } else {
-                    log.info("read: no student found with id={}", entity.getId());
+                    log.info("findById NOOP for id={}", entity.getId());
                     return null;
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error reading Student id=" + entity.getId(), e);
+            throw new RuntimeException("Error finding Student id=" + entity.getId(), e);
         }
     }
 
@@ -88,8 +118,8 @@ public class StudentRepository implements CrudRepository<Student> {
         }
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setString(1, entity.getName());
-            ps.setString(2, entity.getNif());
+            ps.setString(1, entity.getNif());
+            ps.setString(2, entity.getName());
             ps.setString(3, entity.getEmail());
             ps.setString(4, entity.getCurse());
             ps.setObject(5, entity.getModules(), Types.ARRAY);
@@ -124,16 +154,12 @@ public class StudentRepository implements CrudRepository<Student> {
 
     private Student mapRow(ResultSet rs) throws SQLException {
         Student s = new Student();
-        s.setId(rs.getInt("id"));
-        s.setFirstName(rs.getString("first_name"));
-        s.setLastName(rs.getString("last_name"));
-        Date bd = rs.getDate("birth_date");
-        s.setBirthDate(bd != null ? Date.valueOf(bd.toLocalDate()) : null);
-        // NUMERIC maps fine to BigDecimal; if you use Double in the model, adjust accordingly:
-        // For example, rs.getBigDecimal("average_grade") != null ?rs.getBigDecimal("average_grade").doubleValue() : null
-        s.setAverageGrade(rs.getBigDecimal("average_grade") != null
-                ? rs.getBigDecimal("average_grade").doubleValue()
-                : 0.0);
+        s.setId(rs.getInt("id_alumno"));
+        s.setNif(rs.getString("nif"));
+        s.setName(rs.getString("nombre"));
+        s.setEmail(rs.getString("email"));
+        s.setCurse(rs.getString("curse"));
+        s.setModules(rs.getObject("modules", java.util.List.class));
         return s;
     }
 }

@@ -30,27 +30,6 @@ public class AadApplication implements CommandLineRunner {
         log.info("Testing JDBC connection...");
         try {
 
-            postgresqlDriver.beginTransaction();
-
-            // CREATE
-            Student s = new Student();
-            s.setFirstName("Lucia");
-            s.setLastName("Martinez");
-            s.setBirthDate(Date.valueOf(LocalDate.of(2004, 5, 10)));
-            s.setAverageGrade(8.7);
-            s = repo.create(s);
-            // READ
-            Student probe = new Student();
-            probe.setId(s.getId());
-            Student loaded = repo.read(probe);
-            // UPDATE
-            loaded.setAverageGrade(9.2);
-            repo.update(loaded);
-            // DELETE
-            repo.delete(loaded);
-
-            postgresqlDriver.commit();
-
         } catch (Exception e) {
             postgresqlDriver.rollback();
             log.info("Connection failed: " + e.getMessage());
