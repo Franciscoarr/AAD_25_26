@@ -1,6 +1,6 @@
 package com.farrnav3006.aad.repository;
 
-import com.farrnav3006.aad.PostgresqlDriver;
+import com.farrnav3006.aad.config.PostgresqlDriver;
 import com.farrnav3006.aad.model.Student;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import java.sql.*;
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class StudentJdbcRepository implements CrudRepository<Student> {
+public class StudentRepository implements CrudRepository<Student> {
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO student (first_name, last_name, birth_date, average_grade)
@@ -40,10 +40,11 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, entity.getFirstName());
-            ps.setString(2, entity.getLastName());
-            ps.setDate(3, entity.getBirthDate() != null ? entity.getBirthDate() : null);
-            ps.setObject(4, entity.getAverageGrade(), Types.NUMERIC);
+            ps.setString(1, entity.getName());
+            ps.setString(2, entity.getNif());
+            ps.setString(3, entity.getEmail());
+            ps.setString(4, entity.getCurse());
+            ps.setObject(5, entity.getModules(), Types.ARRAY);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
@@ -87,11 +88,12 @@ public class StudentJdbcRepository implements CrudRepository<Student> {
         }
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setString(1, entity.getFirstName());
-            ps.setString(2, entity.getLastName());
-            ps.setDate(3, entity.getBirthDate() != null ? entity.getBirthDate() : null);
-            ps.setObject(4, entity.getAverageGrade(), Types.NUMERIC);
-            ps.setInt(5, entity.getId());
+            ps.setString(1, entity.getName());
+            ps.setString(2, entity.getNif());
+            ps.setString(3, entity.getEmail());
+            ps.setString(4, entity.getCurse());
+            ps.setObject(5, entity.getModules(), Types.ARRAY);
+            ps.setInt(6, entity.getId());
             int updated = ps.executeUpdate();
             if (updated == 0) {
                 throw new RuntimeException("Student not found for update: id=" + entity.getId());

@@ -1,5 +1,6 @@
 package com.farrnav3006.aad;
 
+import com.farrnav3006.aad.config.PostgresqlDriver;
 import com.farrnav3006.aad.model.Student;
 import com.farrnav3006.aad.repository.CrudRepository;
 import lombok.RequiredArgsConstructor;

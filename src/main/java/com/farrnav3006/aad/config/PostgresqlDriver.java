@@ -1,4 +1,4 @@
-package com.farrnav3006.aad;
+package com.farrnav3006.aad.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;

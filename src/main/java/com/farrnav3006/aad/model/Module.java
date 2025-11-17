@@ -2,8 +2,6 @@ package com.farrnav3006.aad.model;
 
 import lombok.*;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,12 +9,10 @@ import java.util.List;
 @Getter
 @Setter
 
-public class Student {
+public class Module {
     private Integer id;
-    private String nif;
+    private String code;
     private String name;
     private String email;
-    private String curse;
-    private List<Module> modules;
+    private Integer hours;
 }
-
