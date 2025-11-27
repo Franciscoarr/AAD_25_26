@@ -2,15 +2,12 @@ package com.farrnav3006.aad;
 
 import com.farrnav3006.aad.config.PostgresqlDriver;
 import com.farrnav3006.aad.model.Student;
-import com.farrnav3006.aad.repository.CrudRepository;
+import com.farrnav3006.aad.repository.CustomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.sql.Date;
-import java.time.LocalDate;
 
 @SpringBootApplication
 @Slf4j
@@ -18,7 +15,7 @@ import java.time.LocalDate;
 public class AadApplication implements CommandLineRunner {
 
     private final PostgresqlDriver postgresqlDriver;
-    private final CrudRepository<Student> repo;
+    private final CustomService<Student> repo;
 
     public static void main(String[] args) {
         SpringApplication.run(AadApplication.class, args);

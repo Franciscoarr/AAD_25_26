@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class StudentRepository implements CrudRepository<Student> {
+public class StudentRepository implements CustomService<Student> {
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO alumno (nif, nombre, email)
@@ -41,31 +41,31 @@ public class StudentRepository implements CrudRepository<Student> {
 
 
     @Override
-    public Student insert(Student entity) {
-        if (entity == null) throw new IllegalArgumentException("Student cannot be null");
+    public Student insert(Student s) {
+        if (s == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, entity.getNif());
-            ps.setString(2, entity.getName());
-            ps.setString(3, entity.getEmail());
-            ps.setString(4, entity.getCurse());
-            ps.setObject(5, entity.getModules(), Types.ARRAY);
+            ps.setString(1, s.getNif());
+            ps.setString(2, s.getName());
+            ps.setString(3, s.getEmail());
+            ps.setString(4, s.getCurse());
+            ps.setObject(5, s.getModules(), Types.ARRAY);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
-                    entity.setId(keys.getInt(1));
+                    s.setId(keys.getInt(1));
                 }
             }
-            log.info("create OK: {}", entity);
-            return entity;
+            log.info("create OK: {}", s);
+            return s;
         } catch (SQLException e) {
             throw new RuntimeException("Error creating Student", e);
         }
     }
 
     @Override
-    public List<Student> findAll(){
+    public List<Student> findAll() {
         List<Student> students = new ArrayList<>();
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDALL)) {
@@ -89,78 +89,67 @@ public class StudentRepository implements CrudRepository<Student> {
     }
 
     @Override
-    public Student findById(Student entity) {
-        if (entity == null || entity.getId() == null) {
-            throw new IllegalArgumentException("findById requires a Student with non-null id");
-        }
+    public Student findById(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
-            ps.setInt(1, entity.getId());
+            ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Student s = mapRow(rs);
+                    Student s = new Student();
+                    s.setId(rs.getInt("id_alumno"));
+                    s.setNif(rs.getString("nif"));
+                    s.setName(rs.getString("nombre"));
+                    s.setEmail(rs.getString("email"));
+                    s.setCurse(rs.getString("curse"));
+                    s.setModules(rs.getObject("modules", java.util.List.class));
                     log.info("findById OK: {}", s);
                     return s;
                 } else {
-                    log.info("findById NOOP for id={}", entity.getId());
+                    log.info("findById NOOP for id={}", id);
                     return null;
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding Student id=" + entity.getId(), e);
+            throw new RuntimeException("Error finding Student id=" + id, e);
         }
     }
 
     @Override
-    public Student update(Student entity) {
-        if (entity == null || entity.getId() == null) {
+    public Student update(Student s) {
+        if (s == null || s.getId() == null) {
             throw new IllegalArgumentException("update requires a Student with non-null id");
         }
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setString(1, entity.getNif());
-            ps.setString(2, entity.getName());
-            ps.setString(3, entity.getEmail());
-            ps.setString(4, entity.getCurse());
-            ps.setObject(5, entity.getModules(), Types.ARRAY);
-            ps.setInt(6, entity.getId());
+            ps.setString(1, s.getNif());
+            ps.setString(2, s.getName());
+            ps.setString(3, s.getEmail());
+            ps.setString(4, s.getCurse());
+            ps.setObject(5, s.getModules(), Types.ARRAY);
+            ps.setInt(6, s.getId());
             int updated = ps.executeUpdate();
             if (updated == 0) {
-                throw new RuntimeException("Student not found for update: id=" + entity.getId());
+                throw new RuntimeException("Student not found for update: id=" + s.getId());
             }
-            log.info("update OK: {}", entity);
-            return entity;
+            log.info("update OK: {}", s);
+            return s;
         } catch (SQLException e) {
-            throw new RuntimeException("Error updating Student id=" + entity.getId(), e);
+            throw new RuntimeException("Error updating Student id=" + s.getId(), e);
         }
     }
 
     @Override
-    public boolean delete(Student entity) {
-        if (entity == null || entity.getId() == null) {
-            throw new IllegalArgumentException("delete requires a Student with non-null id");
-        }
+    public boolean delete(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
-            ps.setInt(1, entity.getId());
+            ps.setInt(1, id);
             int deleted = ps.executeUpdate();
             boolean ok = deleted > 0;
-            log.info("delete {} for id={}", ok ? "OK" : "NOOP", entity.getId());
+            log.info("delete {} for id={}", ok ? "OK" : "NOOP", id);
             return ok;
         } catch (SQLException e) {
-            throw new RuntimeException("Error deleting Student id=" + entity.getId(), e);
+            throw new RuntimeException("Error deleting Student id=" + id, e);
         }
-    }
-
-    private Student mapRow(ResultSet rs) throws SQLException {
-        Student s = new Student();
-        s.setId(rs.getInt("id_alumno"));
-        s.setNif(rs.getString("nif"));
-        s.setName(rs.getString("nombre"));
-        s.setEmail(rs.getString("email"));
-        s.setCurse(rs.getString("curse"));
-        s.setModules(rs.getObject("modules", java.util.List.class));
-        return s;
     }
 }
 

@@ -1,4 +1,4 @@
 package com.farrnav3006.aad.repository;
 
-public class EnrollmentRepository {
+public class EnrollmentRepository implements CustomService<EnrollmentRepository> {
 }

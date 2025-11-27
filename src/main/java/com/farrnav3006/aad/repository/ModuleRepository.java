@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class ModuleRepository implements CrudRepository<Module> {
+public class ModuleRepository implements CustomService<Module> {
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO modulo (codigo, nombre, horas)
@@ -41,29 +41,29 @@ public class ModuleRepository implements CrudRepository<Module> {
 
 
     @Override
-    public Module insert(Module entity) {
-        if (entity == null) throw new IllegalArgumentException("Student cannot be null");
+    public Module insert(Module m) {
+        if (m == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, entity.getCode());
-            ps.setString(2, entity.getName());
-            ps.setInt(3, entity.getHours());
+            ps.setString(1, m.getCode());
+            ps.setString(2, m.getName());
+            ps.setInt(3, m.getHours());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
-                    entity.setId(keys.getInt(1));
+                    m.setId(keys.getInt(1));
                 }
             }
-            log.info("create OK: {}", entity);
-            return entity;
+            log.info("create OK: {}", m);
+            return m;
         } catch (SQLException e) {
             throw new RuntimeException("Error creating Module", e);
         }
     }
 
     @Override
-    public List<Module> findAll(){
+    public List<Module> findAll() {
         List<Module> modules = new ArrayList<>();
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDALL)) {
@@ -85,64 +85,58 @@ public class ModuleRepository implements CrudRepository<Module> {
     }
 
     @Override
-    public Module findById(Module entity) {
-        if (entity == null || entity.getId() == null) {
-            throw new IllegalArgumentException("findById requires a Module with non-null id");
-        }
+    public Module findById(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
-            ps.setInt(1, entity.getId());
+            ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Module s = mapRow(rs);
                     log.info("findById OK: {}", s);
                     return s;
                 } else {
-                    log.info("findById NOOP for id={}", entity.getId());
+                    log.info("findById NOOP for id={}", id);
                     return null;
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding Module id=" + entity.getId(), e);
+            throw new RuntimeException("Error finding Module id=" + id, e);
         }
     }
 
     @Override
-    public Module update(Module entity) {
-        if (entity == null || entity.getId() == null) {
+    public Module update(Module m) {
+        if (m == null || m.getId() == null) {
             throw new IllegalArgumentException("update requires a Module with non-null id");
         }
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setString(1, entity.getCode());
-            ps.setString(2, entity.getName());
-            ps.setInt(3, entity.getHours());
-            ps.setInt(6, entity.getId());
+            ps.setString(1, m.getCode());
+            ps.setString(2, m.getName());
+            ps.setInt(3, m.getHours());
+            ps.setInt(6, m.getId());
             int updated = ps.executeUpdate();
             if (updated == 0) {
-                throw new RuntimeException("Module not found for update: id=" + entity.getId());
+                throw new RuntimeException("Module not found for update: id=" + m.getId());
             }
-            log.info("update OK: {}", entity);
-            return entity;
+            log.info("update OK: {}", m);
+            return m;
         } catch (SQLException e) {
-            throw new RuntimeException("Error updating Module id=" + entity.getId(), e);
+            throw new RuntimeException("Error updating Module id=" + m.getId(), e);
         }
     }
 
     @Override
-    public boolean delete(Module entity) {
-        if (entity == null || entity.getId() == null) {
-            throw new IllegalArgumentException("delete requires a Module with non-null id");
-        }
+    public boolean delete(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
-            ps.setInt(1, entity.getId());
+            ps.setInt(1, id);
             int deleted = ps.executeUpdate();
             boolean ok = deleted > 0;
-            log.info("delete {} for id={}", ok ? "OK" : "NOOP", entity.getId());
+            log.info("delete {} for id={}", ok ? "OK" : "NOOP", id);
             return ok;
         } catch (SQLException e) {
-            throw new RuntimeException("Error deleting Module id=" + entity.getId(), e);
+            throw new RuntimeException("Error deleting Module id=" + id, e);
         }
     }
 
