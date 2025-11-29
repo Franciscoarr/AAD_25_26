@@ -45,22 +45,20 @@ public class StudentRepository {
     public Student insert(Student s) {
         if (s == null) throw new IllegalArgumentException("Student cannot be null");
 
-        String sql = "INSERT INTO alumno (nif, nombre, email) VALUES (?, ?, ?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, new String[] {"id_alumno"});
             ps.setString(1, s.getNif());
             ps.setString(2, s.getName());
             ps.setString(3, s.getEmail());
             return ps;
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    s.setId(keys.getInt(1));
-                }
-            }
-        });
+        }, keyHolder);
+
+        Number key = keyHolder.getKey();
+        if (key != null) {
+            s.setId(key.intValue());
+        }
 
         log.info("create OK: {}", s);
         return s;

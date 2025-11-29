@@ -42,22 +42,24 @@ public class ModuleRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public Module insert(Module module) {
+        if (module == null) throw new IllegalArgumentException("Student cannot be null");
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, new String[] {"id_modulo"});
             ps.setString(1, module.getCode());
             ps.setString(2, module.getName());
             ps.setInt(3, module.getHours());
             return ps;
         }, keyHolder);
 
-        // Recuperar el ID generado
-        if (keyHolder.getKey() != null) {
-            module.setId(keyHolder.getKey().intValue());
-            log.info("✅ ID auto-generado para módulo: {}", module.getId());
+        Number key = keyHolder.getKey();
+        if (key != null) {
+            module.setId(key.intValue());
         }
 
+        log.info("create OK: {}", module);
         return module;
     }
 

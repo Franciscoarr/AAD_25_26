@@ -43,14 +43,10 @@ public class StudentManagementService implements CustomService<Student> {
             throw new IllegalArgumentException("NIF is required");
         }
 
-        try {
-            // ✅ Intentar insertar directamente
-            Student created = studentRepository.insert(student);
-            log.info("Estudiante creado con ID: {}", created.getId());
-            return created;
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating student", e);
-        }
+        Student created = studentRepository.insert(student);
+
+        log.info("Estudiante creado con ID: {}", created.getId());
+        return created;
     }
 
     @Transactional
