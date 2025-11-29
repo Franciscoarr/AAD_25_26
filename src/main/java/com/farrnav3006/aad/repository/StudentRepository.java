@@ -43,7 +43,7 @@ public class StudentRepository {
     public Student insert(Student s) {
         if (s == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_INSERT)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, s.getNif());
             ps.setString(2, s.getName());
@@ -51,6 +51,11 @@ public class StudentRepository {
             //ps.setString(4, s.getCurse());
             //ps.setObject(5, s.getModules(), Types.ARRAY);
             ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    s.setId(keys.getInt(1));
+                }
+            }
             log.info("create OK: {}", s);
             return s;
         } catch (SQLException e) {
