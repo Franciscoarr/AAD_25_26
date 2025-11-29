@@ -38,14 +38,13 @@ public class StudentRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public Student insert(Student student) {
-        String sql = "INSERT INTO alumno (nif, nombre, email) VALUES (?, ?, ?)";
-        jdbcTemplate.update(sql, student.getNif(), student.getName(), student.getEmail());
+        jdbcTemplate.update(SQL_INSERT, student.getNif(), student.getName(), student.getEmail());
         return student;
     }
 
     public List<Student> findAll() {
         return jdbcTemplate.query(
-                "SELECT id_alumno, nif, nombre, email FROM alumno",
+                SQL_FINDALL,
                 (rs, rowNum) -> new Student(
                         rs.getInt("id_alumno"),
                         rs.getString("nif"),
@@ -57,7 +56,7 @@ public class StudentRepository {
 
     public Student findById(int id) {
         List<Student> students = jdbcTemplate.query(
-                "SELECT id_alumno, nif, nombre, email FROM alumno WHERE id_alumno = ?",
+                SQL_FINDBYID,
                 (rs, rowNum) -> new Student(
                         rs.getInt("id_alumno"),
                         rs.getString("nif"),
@@ -70,8 +69,7 @@ public class StudentRepository {
     }
 
     public Student update(Student student) {
-        String sql = "UPDATE alumno SET nif = ?, nombre = ?, email = ? WHERE id_alumno = ?";
-        int updated = jdbcTemplate.update(sql, student.getNif(), student.getName(),
+        int updated = jdbcTemplate.update(SQL_UPDATE, student.getNif(), student.getName(),
                 student.getEmail(), student.getId());
         if (updated == 0) {
             throw new RuntimeException("Student not found for update: id=" + student.getId());
@@ -80,8 +78,7 @@ public class StudentRepository {
     }
 
     public boolean delete(int id) {
-        String sql = "DELETE FROM alumno WHERE id_alumno = ?";
-        int deleted = jdbcTemplate.update(sql, id);
+        int deleted = jdbcTemplate.update(SQL_DELETE, id);
         return deleted > 0;
     }
 }
