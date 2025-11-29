@@ -1,13 +1,11 @@
 package com.farrnav3006.aad.repository;
 
-import com.farrnav3006.aad.config.PostgresqlDriver;
 import com.farrnav3006.aad.model.Student;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -37,113 +35,54 @@ public class StudentRepository {
             DELETE FROM alumno
             WHERE id_alumno = ?
             """;
-    private final PostgresqlDriver postgresqlDriver;
+    private final JdbcTemplate jdbcTemplate;
 
-
-    public Student insert(Student s) {
-        if (s == null) throw new IllegalArgumentException("Student cannot be null");
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_INSERT)) {
-
-            ps.setString(1, s.getNif());
-            ps.setString(2, s.getName());
-            ps.setString(3, s.getEmail());
-            //ps.setString(4, s.getCurse());
-            //ps.setObject(5, s.getModules(), Types.ARRAY);
-            ps.executeUpdate();
-            log.info("create OK: {}", s);
-            return s;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error creating Student", e);
-        }
+    public Student insert(Student student) {
+        String sql = "INSERT INTO alumno (nif, nombre, email) VALUES (?, ?, ?)";
+        jdbcTemplate.update(sql, student.getNif(), student.getName(), student.getEmail());
+        return student;
     }
 
-    public List<Student> findAll(){
-        List<Student> students = new ArrayList<>();
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_FINDALL)) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Student student = new Student();
-                    student.setId(rs.getInt("id_alumno"));
-                    student.setNif(rs.getString("nif"));
-                    student.setName(rs.getString("nombre"));
-                    student.setEmail(rs.getString("email"));
-                    //s.setCurse(rs.getString("curse"));
-                    //s.setModules(rs.getObject("modules", java.util.List.class));
-                    students.add(student);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding Student ", e);
-        }
-        return students;
+    public List<Student> findAll() {
+        return jdbcTemplate.query(
+                "SELECT id_alumno, nif, nombre, email FROM alumno",
+                (rs, rowNum) -> new Student(
+                        rs.getInt("id_alumno"),
+                        rs.getString("nif"),
+                        rs.getString("nombre"),
+                        rs.getString("email")
+                )
+        );
     }
 
     public Student findById(int id) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Student s = mapRow(rs);
-                    log.info("findById OK: {}", s);
-                    return s;
-                } else {
-                    log.info("findById NOOP for id={}", id);
-                    return null;
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding Student id=" + id, e);
-        }
+        List<Student> students = jdbcTemplate.query(
+                "SELECT id_alumno, nif, nombre, email FROM alumno WHERE id_alumno = ?",
+                (rs, rowNum) -> new Student(
+                        rs.getInt("id_alumno"),
+                        rs.getString("nif"),
+                        rs.getString("nombre"),
+                        rs.getString("email")
+                ),
+                id
+        );
+        return students.isEmpty() ? null : students.get(0);
     }
 
-    public Student update(Student s) {
-        if (s == null || s.getId() == null) {
-            throw new IllegalArgumentException("update requires a Student with non-null id");
+    public Student update(Student student) {
+        String sql = "UPDATE alumno SET nif = ?, nombre = ?, email = ? WHERE id_alumno = ?";
+        int updated = jdbcTemplate.update(sql, student.getNif(), student.getName(),
+                student.getEmail(), student.getId());
+        if (updated == 0) {
+            throw new RuntimeException("Student not found for update: id=" + student.getId());
         }
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setString(1, s.getNif());
-            ps.setString(2, s.getName());
-            ps.setString(3, s.getEmail());
-            //ps.setString(4, s.getCurse());
-            //ps.setObject(5, s.getModules(), Types.ARRAY);
-            ps.setInt(4, s.getId());
-            int updated = ps.executeUpdate();
-            if (updated == 0) {
-                throw new RuntimeException("Student not found for update: id=" + s.getId());
-            }
-            log.info("update OK: {}", s);
-            return s;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error updating Student id=" + s.getId(), e);
-        }
+        return student;
     }
 
     public boolean delete(int id) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
-            ps.setInt(1, id);
-            int deleted = ps.executeUpdate();
-            boolean ok = deleted > 0;
-            log.info("delete {} for id={}", ok ? "OK" : "NOOP", id);
-            return ok;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error deleting Student id=" + id, e);
-        }
-    }
-
-    private Student mapRow(ResultSet rs) throws SQLException {
-        Student s = new Student();
-        s.setId(rs.getInt("id_alumno"));
-        s.setNif(rs.getString("nif"));
-        s.setName(rs.getString("nombre"));
-        s.setEmail(rs.getString("email"));
-        //s.setCurse(rs.getString("curse"));
-        //s.setModules(rs.getObject("modules", java.util.List.class));
-        return s;
+        String sql = "DELETE FROM alumno WHERE id_alumno = ?";
+        int deleted = jdbcTemplate.update(sql, id);
+        return deleted > 0;
     }
 }
 

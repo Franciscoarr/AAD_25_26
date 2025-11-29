@@ -1,13 +1,11 @@
 package com.farrnav3006.aad.repository;
 
-import com.farrnav3006.aad.config.PostgresqlDriver;
 import com.farrnav3006.aad.model.Module;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -37,105 +35,50 @@ public class ModuleRepository {
             DELETE FROM modulo
             WHERE id_modulo = ?
             """;
-    private final PostgresqlDriver postgresqlDriver;
+    private final JdbcTemplate jdbcTemplate;
 
-
-    public Module insert(Module m) {
-        if (m == null) throw new IllegalArgumentException("Student cannot be null");
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_INSERT)) {
-
-            ps.setString(1, m.getCode());
-            ps.setString(2, m.getName());
-            ps.setInt(3, m.getHours());
-            ps.executeUpdate();
-            log.info("create OK: {}", m);
-            return m;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error creating Module", e);
-        }
+    public Module insert(Module module) {
+        jdbcTemplate.update(SQL_INSERT, module.getCode(), module.getName(), module.getHours());
+        return module;
     }
 
     public List<Module> findAll() {
-        List<Module> modules = new ArrayList<>();
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_FINDALL)) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Module module = new Module(
-                            rs.getInt("id_modulo"),
-                            rs.getString("codigo"),
-                            rs.getString("nombre"),
-                            rs.getInt("horas")
-                    );
-                    modules.add(module);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding Module ", e);
-        }
-        return modules;
+        return jdbcTemplate.query(
+                SQL_FINDALL,
+                (rs, rowNum) -> new Module(
+                        rs.getInt("id_modulo"),
+                        rs.getString("codigo"),
+                        rs.getString("nombre"),
+                        rs.getInt("horas")
+                )
+        );
     }
 
     public Module findById(int id) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Module s = mapRow(rs);
-                    log.info("findById OK: {}", s);
-                    return s;
-                } else {
-                    log.info("findById NOOP for id={}", id);
-                    return null;
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding Module id=" + id, e);
-        }
+        List<Module> modules = jdbcTemplate.query(
+                SQL_FINDBYID,
+                (rs, rowNum) -> new Module(
+                        rs.getInt("id_modulo"),
+                        rs.getString("codigo"),
+                        rs.getString("nombre"),
+                        rs.getInt("horas")
+                ),
+                id
+        );
+        return modules.isEmpty() ? null : modules.get(0);
     }
 
-    public Module update(Module m) {
-        if (m == null || m.getId() == null) {
-            throw new IllegalArgumentException("update requires a Module with non-null id");
+    public Module update(Module module) {
+        int updated = jdbcTemplate.update(SQL_UPDATE, module.getCode(), module.getName(),
+                module.getHours(), module.getId());
+        if (updated == 0) {
+            throw new RuntimeException("Module not found for update: id=" + module.getId());
         }
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
-            ps.setString(1, m.getCode());
-            ps.setString(2, m.getName());
-            ps.setInt(3, m.getHours());
-            ps.setInt(4, m.getId());
-            int updated = ps.executeUpdate();
-            if (updated == 0) {
-                throw new RuntimeException("Module not found for update: id=" + m.getId());
-            }
-            log.info("update OK: {}", m);
-            return m;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error updating Module id=" + m.getId(), e);
-        }
+        return module;
     }
 
     public boolean delete(int id) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
-            ps.setInt(1, id);
-            int deleted = ps.executeUpdate();
-            boolean ok = deleted > 0;
-            log.info("delete {} for id={}", ok ? "OK" : "NOOP", id);
-            return ok;
-        } catch (SQLException e) {
-            throw new RuntimeException("Error deleting Module id=" + id, e);
-        }
-    }
-
-    private Module mapRow(ResultSet rs) throws SQLException {
-        Module s = new Module();
-        s.setId(rs.getInt("id_modulo"));
-        s.setCode(rs.getString("codigo"));
-        s.setName(rs.getString("nombre"));
-        s.setHours(rs.getInt("horas"));
-        return s;
+        int deleted = jdbcTemplate.update(SQL_DELETE, id);
+        return deleted > 0;
     }
 }

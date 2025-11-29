@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Setter
 
 public class Enrollment {
-    private Integer id;
+    //private Integer id;
     private Integer studentId;
     private Integer moduleId;
     private LocalDate date;
