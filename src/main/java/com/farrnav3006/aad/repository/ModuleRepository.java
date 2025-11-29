@@ -4,8 +4,12 @@ import com.farrnav3006.aad.model.Module;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
 
 @Repository
@@ -38,7 +42,22 @@ public class ModuleRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public Module insert(Module module) {
-        jdbcTemplate.update(SQL_INSERT, module.getCode(), module.getName(), module.getHours());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, module.getCode());
+            ps.setString(2, module.getName());
+            ps.setInt(3, module.getHours());
+            return ps;
+        }, keyHolder);
+
+        // Recuperar el ID generado
+        if (keyHolder.getKey() != null) {
+            module.setId(keyHolder.getKey().intValue());
+            log.info("✅ ID auto-generado para módulo: {}", module.getId());
+        }
+
         return module;
     }
 

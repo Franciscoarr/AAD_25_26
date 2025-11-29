@@ -8,6 +8,7 @@ import com.farrnav3006.aad.repository.EnrollmentRepository;
 import com.farrnav3006.aad.repository.ModuleRepository;
 import com.farrnav3006.aad.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class StudentManagementService implements CustomService<Student> {
 
@@ -23,11 +25,13 @@ public class StudentManagementService implements CustomService<Student> {
     private final EnrollmentRepository enrollmentRepository;
 
     public Module createModule(Module module) {
-        Module existing = moduleRepository.findById(module.getId());
-        if (existing != null) {
-            return existing;
-        } else {
-            return moduleRepository.insert(module);
+        try {
+            // ✅ Intentar insertar directamente
+            Module created = moduleRepository.insert(module);
+            log.info("Módulo creado con ID: {}", created.getId());
+            return created;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating module", e);
         }
     }
 
@@ -39,11 +43,13 @@ public class StudentManagementService implements CustomService<Student> {
             throw new IllegalArgumentException("NIF is required");
         }
 
-        Student existing = studentRepository.findById(student.getId());
-        if (existing != null) {
-            return existing;
-        } else {
-            return studentRepository.insert(student);
+        try {
+            // ✅ Intentar insertar directamente
+            Student created = studentRepository.insert(student);
+            log.info("Estudiante creado con ID: {}", created.getId());
+            return created;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating student", e);
         }
     }
 

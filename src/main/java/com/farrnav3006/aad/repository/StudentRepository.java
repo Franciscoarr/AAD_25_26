@@ -4,8 +4,12 @@ import com.farrnav3006.aad.model.Student;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
 
 @Repository
@@ -37,9 +41,32 @@ public class StudentRepository {
             """;
     private final JdbcTemplate jdbcTemplate;
 
-    public Student insert(Student student) {
-        jdbcTemplate.update(SQL_INSERT, student.getNif(), student.getName(), student.getEmail());
-        return student;
+    public Student insert(Student s) {
+        if (s == null) throw new IllegalArgumentException("Student cannot be null");
+
+        String sql = "INSERT INTO alumno (nif, nombre, email) VALUES (?, ?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, s.getNif());
+            ps.setString(2, s.getName());
+            ps.setString(3, s.getEmail());
+            return ps;
+        }, keyHolder);
+
+        // ✅ CRÍTICO: Recuperar y asignar el ID generado
+        Number generatedId = keyHolder.getKey();
+        if (generatedId != null) {
+            s.setId(generatedId.intValue());
+            log.info("✅ ID auto-generado para estudiante: {}", s.getId());
+        } else {
+            throw new RuntimeException("No se pudo recuperar el ID generado para el estudiante");
+        }
+
+        log.info("create OK: {}", s);
+        return s;
     }
 
     public List<Student> findAll() {
