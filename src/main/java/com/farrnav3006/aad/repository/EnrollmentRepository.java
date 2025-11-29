@@ -16,7 +16,7 @@ import java.util.List;
 public class EnrollmentRepository {
     // SQL statements
     private static final String SQL_CREATE = """
-            INSERT INTO matricula (id_alumno, is_modulo, fecha)
+            INSERT INTO matricula (id_alumno, id_modulo, fecha)
             VALUES (?, ?, ?)
             """;
     private static final String SQL_FINDALL = """

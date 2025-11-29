@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class ModuleRepository {
+public class ModuleRepository implements CrudRepository<Module>{
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO modulo (codigo, nombre, horas)
@@ -39,7 +39,7 @@ public class ModuleRepository {
             """;
     private final PostgresqlDriver postgresqlDriver;
 
-
+    @Override
     public Module insert(Module m) {
         if (m == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
@@ -56,6 +56,7 @@ public class ModuleRepository {
         }
     }
 
+    @Override
     public List<Module> findAll() {
         List<Module> modules = new ArrayList<>();
         try (Connection conn = postgresqlDriver.getConnection();
@@ -77,6 +78,7 @@ public class ModuleRepository {
         return modules;
     }
 
+    @Override
     public Module findById(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
@@ -96,6 +98,7 @@ public class ModuleRepository {
         }
     }
 
+    @Override
     public Module update(Module m) {
         if (m == null || m.getId() == null) {
             throw new IllegalArgumentException("update requires a Module with non-null id");
@@ -117,6 +120,7 @@ public class ModuleRepository {
         }
     }
 
+    @Override
     public boolean delete(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {

@@ -16,7 +16,7 @@ public class Student {
     private String nif;
     private String name;
     private String email;
-    private String curse;
-    private List<Module> modules;
+    //private String curse;
+    //private List<Module> modules;
 }
 

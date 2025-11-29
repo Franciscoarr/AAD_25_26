@@ -30,9 +30,9 @@ public class Application implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("Starting student management system test...");
 
-        Student miriam = new Student(1, "66280457T", "Miriam",
-                "miriam@g.educaand.es", "DAM", List.of());
-        Module programacion = new Module(4, "0485", "Programacion", 250);
+        Student miriam = new Student(null, "66280457T", "Miriam",
+                "miriam@g.educaand.es");
+        Module programacion = new Module(null, "0485", "Programacion", 250);
 
         miriam = studentManagementService.createStudent(miriam);
         programacion = studentManagementService.createModule(programacion);
