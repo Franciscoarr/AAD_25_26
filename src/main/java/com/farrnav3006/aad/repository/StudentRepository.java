@@ -9,14 +9,12 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.List;
 
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class StudentRepository {
+public class StudentRepository implements CrudRepository<Student> {
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO alumno (nif, nombre, email)
@@ -42,6 +40,7 @@ public class StudentRepository {
             """;
     private final JdbcTemplate jdbcTemplate;
 
+    @Override
     public Student insert(Student s) {
         if (s == null) throw new IllegalArgumentException("Student cannot be null");
 
@@ -64,8 +63,9 @@ public class StudentRepository {
         return s;
     }
 
+    @Override
     public List<Student> findAll() {
-        return jdbcTemplate.query(
+        List<Student> students = jdbcTemplate.query(
                 SQL_FINDALL,
                 (rs, rowNum) -> new Student(
                         rs.getInt("id_alumno"),
@@ -74,8 +74,12 @@ public class StudentRepository {
                         rs.getString("email")
                 )
         );
+
+        log.info("FindAll Students OK");
+        return students;
     }
 
+    @Override
     public Student findById(int id) {
         List<Student> students = jdbcTemplate.query(
                 SQL_FINDBYID,
@@ -87,20 +91,25 @@ public class StudentRepository {
                 ),
                 id
         );
+        log.info("FindById Students OK id={}", id);
         return students.isEmpty() ? null : students.get(0);
     }
 
+    @Override
     public Student update(Student student) {
         int updated = jdbcTemplate.update(SQL_UPDATE, student.getNif(), student.getName(),
                 student.getEmail(), student.getId());
         if (updated == 0) {
             throw new RuntimeException("Student not found for update: id=" + student.getId());
         }
+        log.info("Update Students OK id={}", student.getId());
         return student;
     }
 
+    @Override
     public boolean delete(int id) {
         int deleted = jdbcTemplate.update(SQL_DELETE, id);
+        log.info("Delete Students OK id={}", id);
         return deleted > 0;
     }
 }

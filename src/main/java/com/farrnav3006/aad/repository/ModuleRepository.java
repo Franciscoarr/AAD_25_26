@@ -9,13 +9,12 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
 
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class ModuleRepository {
+public class ModuleRepository implements CrudRepository<Module> {
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO modulo (codigo, nombre, horas)
@@ -41,6 +40,7 @@ public class ModuleRepository {
             """;
     private final JdbcTemplate jdbcTemplate;
 
+    @Override
     public Module insert(Module module) {
         if (module == null) throw new IllegalArgumentException("Student cannot be null");
 
@@ -63,8 +63,10 @@ public class ModuleRepository {
         return module;
     }
 
+    @Override
     public List<Module> findAll() {
-        return jdbcTemplate.query(
+        log.info("Ejecutando findAll Modules");
+        List<Module> modules = jdbcTemplate.query(
                 SQL_FINDALL,
                 (rs, rowNum) -> new Module(
                         rs.getInt("id_modulo"),
@@ -73,8 +75,11 @@ public class ModuleRepository {
                         rs.getInt("horas")
                 )
         );
+        log.info("FindAll Modules OK");
+        return modules;
     }
 
+    @Override
     public Module findById(int id) {
         List<Module> modules = jdbcTemplate.query(
                 SQL_FINDBYID,
@@ -86,20 +91,25 @@ public class ModuleRepository {
                 ),
                 id
         );
+        log.info("FindById Modules OK id={}", id);
         return modules.isEmpty() ? null : modules.get(0);
     }
 
+    @Override
     public Module update(Module module) {
         int updated = jdbcTemplate.update(SQL_UPDATE, module.getCode(), module.getName(),
                 module.getHours(), module.getId());
         if (updated == 0) {
             throw new RuntimeException("Module not found for update: id=" + module.getId());
         }
+        log.info("Update Modules OK id={}", module.getId());
         return module;
     }
 
+    @Override
     public boolean delete(int id) {
         int deleted = jdbcTemplate.update(SQL_DELETE, id);
+        log.info("Delete Modules OK id={}", id);
         return deleted > 0;
     }
 }
