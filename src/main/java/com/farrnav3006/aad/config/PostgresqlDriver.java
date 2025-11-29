@@ -27,7 +27,7 @@ public class PostgresqlDriver {
     // Si no se define, por defecto usamos el driver de PostgreSQL
     @Value("${spring.datasource.driver-class-name:org.postgresql.Driver}")
     private String driverClassName;
-    @Value("classpath*:sql/*.sql")
+    @Value("classpath*:sql/ddl/*.sql")
     private Resource[] scripts;
 
     private Connection connection;

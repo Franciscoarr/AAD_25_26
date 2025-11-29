@@ -10,6 +10,10 @@ import com.farrnav3006.aad.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 
 
@@ -107,11 +111,15 @@ public class StudentManagementService implements CustomService {
         }
     }
 
-    public int getEnrollmentCount(Integer studentId) {
-        try {
-            return enrollmentRepository.countEnrollments(studentId);
-        } catch (Exception e) {
-            throw new RuntimeException("Error counting enrollments", e);
+    public int countEnrollments(int studentId) {
+        try (Connection conn = postgresqlDriver.getConnection();
+             CallableStatement cs = conn.prepareCall("{ ? = call count_enrollments(?) }")) {
+            cs.registerOutParameter(1, Types.INTEGER);
+            cs.setInt(2, studentId);
+            cs.execute();
+            return cs.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error count Enrollment", e);
         }
     }
 }

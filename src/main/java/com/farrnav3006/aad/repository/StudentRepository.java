@@ -88,21 +88,29 @@ public class StudentRepository implements CrudRepository<Student> {
 
     @Override
     public Student findById(int id) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = postgresqlDriver.getConnection();
+            ps = conn.prepareStatement(SQL_FINDBYID);
             ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Student s = mapRow(rs);
-                    log.info("findById OK: {}", s);
-                    return s;
-                } else {
-                    log.info("findById NOOP for id={}", id);
-                    return null;
-                }
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Student s = mapRow(rs);
+                log.info("findById OK: {}", s);
+                return s;
+            } else {
+                log.info("findById NOOP for id={}", id);
+                return null;
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error finding Student id=" + id, e);
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException e) { log.warn("Error closing RS", e); }
+            try { if (ps != null) ps.close(); } catch (SQLException e) { log.warn("Error closing PS", e); }
         }
     }
 

@@ -28,24 +28,17 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Starting student management system test...");
-
-        Student miriam = new Student(null, "66280457T", "Miriam",
-                "miriam@g.educaand.es");
-        Module programacion = new Module(null, "0485", "Programacion", 250);
+        Student miriam = new Student(null, "66280457T", "Miriam", "miriam@g.educaand.es");
+        Module programacion = new Module(null, "0485", "Programación", 250);
 
         miriam = studentManagementService.createStudent(miriam);
         programacion = studentManagementService.createModule(programacion);
 
+        int modulosMatriculados = studentManagementService.countEnrollments(miriam.getId());
+        log.info("{} módulos matriculados para el alumno {}", modulosMatriculados, miriam.getName());
+
         studentManagementService.enrollStudentInModule(miriam.getId(), programacion.getId());
-
-        // Count enrollments for the student
-        int enrollmentCount = studentManagementService.getEnrollmentCount(miriam.getId());
-        System.out.println("Total enrollments for student: " + enrollmentCount);
-
         studentRepository.delete(miriam.getId());
-
-        System.out.println("Test completed successfully!");
     }
 
 }

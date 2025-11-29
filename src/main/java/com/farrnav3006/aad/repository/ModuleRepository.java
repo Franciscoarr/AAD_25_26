@@ -43,7 +43,6 @@ public class ModuleRepository implements CrudRepository<Module>{
     public Module insert(Module m) {
         if (m == null) throw new IllegalArgumentException("Module cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
-             // ✅ AGREGAR Statement.RETURN_GENERATED_KEYS
              PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, m.getCode());
@@ -86,23 +85,40 @@ public class ModuleRepository implements CrudRepository<Module>{
         return modules;
     }
 
-    @Override
     public Module findById(int id) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = postgresqlDriver.getConnection();  // ⚠️ SIN try-with-resources
+            ps = conn.prepareStatement(SQL_FINDBYID);
             ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Module s = mapRow(rs);
-                    log.info("findById OK: {}", s);
-                    return s;
-                } else {
-                    log.info("findById NOOP for id={}", id);
-                    return null;
-                }
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Module s = mapRow(rs);
+                log.info("findById OK: {}", s);
+                return s;
+            } else {
+                log.info("findById NOOP for id={}", id);
+                return null;
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error finding Module id=" + id, e);
+        } finally {
+            // Cerrar solo Statement y ResultSet, NO la Connection
+            try {
+                if (rs != null) rs.close();
+            } catch (SQLException e) {
+                log.warn("Error closing ResultSet", e);
+            }
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException e) {
+                log.warn("Error closing PreparedStatement", e);
+            }
+            // ⚠️ NO cerrar conn aquí - se cerrará en commit()/rollback()
         }
     }
 

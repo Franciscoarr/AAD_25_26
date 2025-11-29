@@ -36,17 +36,30 @@ public class EnrollmentRepository {
 
 
     public Enrollment createEnrollment(Enrollment e) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_CREATE)) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = postgresqlDriver.getConnection();  // ⚠️ SIN try-with-resources
+            ps = conn.prepareStatement(SQL_CREATE);
 
             ps.setInt(1, e.getStudentId());
             ps.setInt(2, e.getModuleId());
             ps.setDate(3, Date.valueOf(e.getDate()));
             ps.executeUpdate();
+
             log.info("create OK: {}", e);
             return e;
         } catch (SQLException er) {
             throw new RuntimeException("Error creating Enrollment", er);
+        } finally {
+            // Cerrar solo PreparedStatement, NO la Connection
+            try {
+                if (ps != null) ps.close();
+            } catch (SQLException ex) {
+                log.warn("Error closing PreparedStatement", ex);
+            }
+            // ⚠️ NO cerrar conn aquí - se cerrará en commit()/rollback()
         }
     }
 
@@ -103,16 +116,6 @@ public class EnrollmentRepository {
         }
     }
 
-    public int countEnrollments(int studentId) {
-        try (Connection conn = postgresqlDriver.getConnection();
-             CallableStatement cs = conn.prepareCall("{ ? = call count_enrollments(?) }")) {
-            cs.registerOutParameter(1, Types.INTEGER);
-            cs.setInt(2, studentId);
-            cs.execute();
-            return cs.getInt(1);
-        } catch (SQLException e) {
-            throw new RuntimeException("Error count Enrollment", e);
-        }
-    }
+
 }
 
