@@ -41,14 +41,22 @@ public class ModuleRepository implements CrudRepository<Module>{
 
     @Override
     public Module insert(Module m) {
-        if (m == null) throw new IllegalArgumentException("Student cannot be null");
+        if (m == null) throw new IllegalArgumentException("Module cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_INSERT)) {
+             // ✅ AGREGAR Statement.RETURN_GENERATED_KEYS
+             PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, m.getCode());
             ps.setString(2, m.getName());
             ps.setInt(3, m.getHours());
             ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    m.setId(keys.getInt(1));
+                }
+            }
+
             log.info("create OK: {}", m);
             return m;
         } catch (SQLException e) {

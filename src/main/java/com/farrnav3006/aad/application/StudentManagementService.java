@@ -26,12 +26,19 @@ public class StudentManagementService implements CustomService {
     @Override
     public Module createModule(Module module) {
         try {
-            Module existing = moduleRepository.findById(module.getId());
-            if (existing != null) {
-                return existing;
+            System.out.println("Creating module - Input ID: " + module.getId() + ", Code: " + module.getCode());
+
+            Module result;
+            if (module.getId() == null) {
+                result = moduleRepository.insert(module);
             } else {
-                return moduleRepository.insert(module);
+                Module existing = moduleRepository.findById(module.getId());
+                result = existing != null ? existing : moduleRepository.insert(module);
             }
+
+            System.out.println("Created module - Output ID: " + result.getId() + ", Code: " + result.getCode());
+            return result;
+
         } catch (Exception e) {
             throw new RuntimeException("Error creating module", e);
         }
@@ -45,13 +52,21 @@ public class StudentManagementService implements CustomService {
         if (student.getNif() == null || student.getNif().isBlank()) {
             throw new IllegalArgumentException("NIF is required");
         }
+
         try {
-            Student existing = studentRepository.findById(student.getId());
-            if (existing != null) {
-                return existing;
+            System.out.println("Creating student - Input ID: " + student.getId() + ", Name: " + student.getName());
+
+            Student result;
+            if (student.getId() == null) {
+                result = studentRepository.insert(student);
             } else {
-                return studentRepository.insert(student);
+                Student existing = studentRepository.findById(student.getId());
+                result = existing != null ? existing : studentRepository.insert(student);
             }
+
+            System.out.println("Created student - Output ID: " + result.getId() + ", Name: " + result.getName());
+            return result;
+
         } catch (Exception e) {
             throw new RuntimeException("Error creating student", e);
         }
@@ -59,16 +74,29 @@ public class StudentManagementService implements CustomService {
 
     @Override
     public Enrollment enrollStudentInModule(Integer studentId, Integer moduleId) {
+        // Validar parámetros
+        if (studentId == null) {
+            throw new IllegalArgumentException("Student ID cannot be null");
+        }
+        if (moduleId == null) {
+            throw new IllegalArgumentException("Module ID cannot be null");
+        }
+
+        System.out.println("Enrolling - Student ID: " + studentId + ", Module ID: " + moduleId);
+
         try {
             postgresqlDriver.beginTransaction();
 
             var student = studentRepository.findById(studentId);
             if (student == null) throw new IllegalArgumentException("Student not found: " + studentId);
+            System.out.println("Found student: " + student.getId() + " - " + student.getName());
 
             var module = moduleRepository.findById(moduleId);
             if (module == null) throw new IllegalArgumentException("Module not found: " + moduleId);
+            System.out.println("Found module: " + module.getId() + " - " + module.getName());
 
             Enrollment created = enrollmentRepository.createEnrollment(new Enrollment(student.getId(), module.getId(), LocalDate.now()));
+            System.out.println("Created enrollment: " + created.getStudentId() + " -> " + created.getModuleId());
 
             postgresqlDriver.commit();
             return created;
@@ -79,9 +107,6 @@ public class StudentManagementService implements CustomService {
         }
     }
 
-    /**
-     * Invoca repositorio para contar matrículas (función almacenada).
-     */
     public int getEnrollmentCount(Integer studentId) {
         try {
             return enrollmentRepository.countEnrollments(studentId);
@@ -89,5 +114,4 @@ public class StudentManagementService implements CustomService {
             throw new RuntimeException("Error counting enrollments", e);
         }
     }
-
 }
