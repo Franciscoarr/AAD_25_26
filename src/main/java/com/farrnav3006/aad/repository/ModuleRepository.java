@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class ModuleRepository implements CustomService<Module> {
+public class ModuleRepository {
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO modulo (codigo, nombre, horas)
@@ -29,7 +29,7 @@ public class ModuleRepository implements CustomService<Module> {
             WHERE id_modulo = ?
             """;
     private static final String SQL_UPDATE = """
-            UPDATE alumno
+            UPDATE modulo
             SET codigo = ?, nombre = ?, horas = ?
             WHERE id_modulo = ?
             """;
@@ -40,21 +40,15 @@ public class ModuleRepository implements CustomService<Module> {
     private final PostgresqlDriver postgresqlDriver;
 
 
-    @Override
     public Module insert(Module m) {
         if (m == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_INSERT)) {
 
             ps.setString(1, m.getCode());
             ps.setString(2, m.getName());
             ps.setInt(3, m.getHours());
             ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    m.setId(keys.getInt(1));
-                }
-            }
             log.info("create OK: {}", m);
             return m;
         } catch (SQLException e) {
@@ -62,7 +56,6 @@ public class ModuleRepository implements CustomService<Module> {
         }
     }
 
-    @Override
     public List<Module> findAll() {
         List<Module> modules = new ArrayList<>();
         try (Connection conn = postgresqlDriver.getConnection();
@@ -84,7 +77,6 @@ public class ModuleRepository implements CustomService<Module> {
         return modules;
     }
 
-    @Override
     public Module findById(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
@@ -104,7 +96,6 @@ public class ModuleRepository implements CustomService<Module> {
         }
     }
 
-    @Override
     public Module update(Module m) {
         if (m == null || m.getId() == null) {
             throw new IllegalArgumentException("update requires a Module with non-null id");
@@ -114,7 +105,7 @@ public class ModuleRepository implements CustomService<Module> {
             ps.setString(1, m.getCode());
             ps.setString(2, m.getName());
             ps.setInt(3, m.getHours());
-            ps.setInt(6, m.getId());
+            ps.setInt(4, m.getId());
             int updated = ps.executeUpdate();
             if (updated == 0) {
                 throw new RuntimeException("Module not found for update: id=" + m.getId());
@@ -126,7 +117,6 @@ public class ModuleRepository implements CustomService<Module> {
         }
     }
 
-    @Override
     public boolean delete(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {

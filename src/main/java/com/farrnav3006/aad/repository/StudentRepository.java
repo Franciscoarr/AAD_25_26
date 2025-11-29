@@ -13,11 +13,11 @@ import java.util.List;
 @Repository
 @Slf4j
 @RequiredArgsConstructor
-public class StudentRepository implements CustomService<Student> {
+public class StudentRepository {
     // SQL statements
     private static final String SQL_INSERT = """
             INSERT INTO alumno (nif, nombre, email)
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?)
             """;
     private static final String SQL_FINDALL = """
             SELECT *
@@ -40,23 +40,17 @@ public class StudentRepository implements CustomService<Student> {
     private final PostgresqlDriver postgresqlDriver;
 
 
-    @Override
     public Student insert(Student s) {
         if (s == null) throw new IllegalArgumentException("Student cannot be null");
         try (Connection conn = postgresqlDriver.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_INSERT)) {
 
             ps.setString(1, s.getNif());
             ps.setString(2, s.getName());
             ps.setString(3, s.getEmail());
-            ps.setString(4, s.getCurse());
-            ps.setObject(5, s.getModules(), Types.ARRAY);
+            //ps.setString(4, s.getCurse());
+            //ps.setObject(5, s.getModules(), Types.ARRAY);
             ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    s.setId(keys.getInt(1));
-                }
-            }
             log.info("create OK: {}", s);
             return s;
         } catch (SQLException e) {
@@ -64,21 +58,19 @@ public class StudentRepository implements CustomService<Student> {
         }
     }
 
-    @Override
-    public List<Student> findAll() {
+    public List<Student> findAll(){
         List<Student> students = new ArrayList<>();
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDALL)) {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Student student = new Student(
-                            rs.getInt("id_alumno"),
-                            rs.getString("nif"),
-                            rs.getString("nombre"),
-                            rs.getString("email"),
-                            rs.getString("curse"),
-                            new ArrayList<>() // Los módulos se cargan por separado
-                    );
+                    Student student = new Student();
+                    student.setId(rs.getInt("id_alumno"));
+                    student.setNif(rs.getString("nif"));
+                    student.setName(rs.getString("nombre"));
+                    student.setEmail(rs.getString("email"));
+                    //s.setCurse(rs.getString("curse"));
+                    //s.setModules(rs.getObject("modules", java.util.List.class));
                     students.add(student);
                 }
             }
@@ -88,20 +80,13 @@ public class StudentRepository implements CustomService<Student> {
         return students;
     }
 
-    @Override
     public Student findById(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_FINDBYID)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Student s = new Student();
-                    s.setId(rs.getInt("id_alumno"));
-                    s.setNif(rs.getString("nif"));
-                    s.setName(rs.getString("nombre"));
-                    s.setEmail(rs.getString("email"));
-                    s.setCurse(rs.getString("curse"));
-                    s.setModules(rs.getObject("modules", java.util.List.class));
+                    Student s = mapRow(rs);
                     log.info("findById OK: {}", s);
                     return s;
                 } else {
@@ -114,7 +99,6 @@ public class StudentRepository implements CustomService<Student> {
         }
     }
 
-    @Override
     public Student update(Student s) {
         if (s == null || s.getId() == null) {
             throw new IllegalArgumentException("update requires a Student with non-null id");
@@ -124,9 +108,9 @@ public class StudentRepository implements CustomService<Student> {
             ps.setString(1, s.getNif());
             ps.setString(2, s.getName());
             ps.setString(3, s.getEmail());
-            ps.setString(4, s.getCurse());
-            ps.setObject(5, s.getModules(), Types.ARRAY);
-            ps.setInt(6, s.getId());
+            //ps.setString(4, s.getCurse());
+            //ps.setObject(5, s.getModules(), Types.ARRAY);
+            ps.setInt(4, s.getId());
             int updated = ps.executeUpdate();
             if (updated == 0) {
                 throw new RuntimeException("Student not found for update: id=" + s.getId());
@@ -138,7 +122,6 @@ public class StudentRepository implements CustomService<Student> {
         }
     }
 
-    @Override
     public boolean delete(int id) {
         try (Connection conn = postgresqlDriver.getConnection();
              PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
@@ -150,6 +133,17 @@ public class StudentRepository implements CustomService<Student> {
         } catch (SQLException e) {
             throw new RuntimeException("Error deleting Student id=" + id, e);
         }
+    }
+
+    private Student mapRow(ResultSet rs) throws SQLException {
+        Student s = new Student();
+        s.setId(rs.getInt("id_alumno"));
+        s.setNif(rs.getString("nif"));
+        s.setName(rs.getString("nombre"));
+        s.setEmail(rs.getString("email"));
+        //s.setCurse(rs.getString("curse"));
+        //s.setModules(rs.getObject("modules", java.util.List.class));
+        return s;
     }
 }
 

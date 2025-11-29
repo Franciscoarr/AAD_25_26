@@ -8,16 +8,10 @@ public interface CustomService<T> {
 
     List<T> findAll();
 
-    T findById(int id);
+    T findById(Integer id);
 
     T update(T entity);
 
-    boolean delete(int id);
-
-    T createEnrollment(T entity, T entity2);
-
-    T findByStudent(T entity);
-
-    T countEnrollments(T entity);
+    boolean delete(Integer id);
 }
 
