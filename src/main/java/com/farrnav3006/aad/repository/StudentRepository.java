@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 
@@ -54,16 +55,12 @@ public class StudentRepository {
             ps.setString(2, s.getName());
             ps.setString(3, s.getEmail());
             return ps;
-        }, keyHolder);
-
-        // ✅ CRÍTICO: Recuperar y asignar el ID generado
-        Number generatedId = keyHolder.getKey();
-        if (generatedId != null) {
-            s.setId(generatedId.intValue());
-            log.info("✅ ID auto-generado para estudiante: {}", s.getId());
-        } else {
-            throw new RuntimeException("No se pudo recuperar el ID generado para el estudiante");
-        }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    s.setId(keys.getInt(1));
+                }
+            }
+        });
 
         log.info("create OK: {}", s);
         return s;
