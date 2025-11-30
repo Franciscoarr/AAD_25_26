@@ -8,4 +8,5 @@ spring:
     init:
       mode: always
       schema-locations: classpath:sql/ddl/01_schema.sql
+      procedures-locations: classpath:sql/ddl/02_procedures.sql
       data-locations: classpath:sql/ddl/03_sample_data.sql

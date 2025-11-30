@@ -3,6 +3,7 @@ package com.farrnav3006.aad;
 import com.farrnav3006.aad.application.StudentManagementService;
 import com.farrnav3006.aad.model.Student;
 import com.farrnav3006.aad.model.Module;
+import com.farrnav3006.aad.repository.EnrollmentRepository;
 import com.farrnav3006.aad.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ public class Application implements CommandLineRunner {
 
     private final StudentManagementService studentManagementService;
     private final StudentRepository studentRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -29,6 +31,9 @@ public class Application implements CommandLineRunner {
 
         miriam = studentManagementService.createStudent(miriam);
         programacion = studentManagementService.createModule(programacion);
+
+        int modulosMatriculados = enrollmentRepository.countEnrollments(miriam.getId());
+        log.info("{} módulos matriculados para el alumno {}", modulosMatriculados, miriam.getName());
 
         studentManagementService.enrollStudentInModule(miriam.getId(), programacion.getId());
         studentRepository.delete(miriam.getId());
