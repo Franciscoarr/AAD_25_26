@@ -40,7 +40,7 @@ public class EnrollmentRepository {
         PreparedStatement ps = null;
 
         try {
-            conn = postgresqlDriver.getConnection();  // ⚠️ SIN try-with-resources
+            conn = postgresqlDriver.getConnection();
             ps = conn.prepareStatement(SQL_CREATE);
 
             ps.setInt(1, e.getStudentId());
@@ -53,13 +53,11 @@ public class EnrollmentRepository {
         } catch (SQLException er) {
             throw new RuntimeException("Error creating Enrollment", er);
         } finally {
-            // Cerrar solo PreparedStatement, NO la Connection
             try {
                 if (ps != null) ps.close();
             } catch (SQLException ex) {
                 log.warn("Error closing PreparedStatement", ex);
             }
-            // ⚠️ NO cerrar conn aquí - se cerrará en commit()/rollback()
         }
     }
 

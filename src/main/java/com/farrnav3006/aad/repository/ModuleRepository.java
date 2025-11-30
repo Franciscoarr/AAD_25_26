@@ -91,7 +91,7 @@ public class ModuleRepository implements CrudRepository<Module>{
         ResultSet rs = null;
 
         try {
-            conn = postgresqlDriver.getConnection();  // ⚠️ SIN try-with-resources
+            conn = postgresqlDriver.getConnection();
             ps = conn.prepareStatement(SQL_FINDBYID);
             ps.setInt(1, id);
             rs = ps.executeQuery();
@@ -107,7 +107,6 @@ public class ModuleRepository implements CrudRepository<Module>{
         } catch (SQLException e) {
             throw new RuntimeException("Error finding Module id=" + id, e);
         } finally {
-            // Cerrar solo Statement y ResultSet, NO la Connection
             try {
                 if (rs != null) rs.close();
             } catch (SQLException e) {
@@ -118,7 +117,6 @@ public class ModuleRepository implements CrudRepository<Module>{
             } catch (SQLException e) {
                 log.warn("Error closing PreparedStatement", e);
             }
-            // ⚠️ NO cerrar conn aquí - se cerrará en commit()/rollback()
         }
     }
 
