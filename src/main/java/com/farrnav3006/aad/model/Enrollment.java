@@ -1,8 +1,7 @@
 package com.farrnav3006.aad.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -10,10 +9,19 @@ import java.time.LocalDate;
 @ToString
 @Getter
 @Setter
+@Entity
 
 public class Enrollment {
     //private Integer id;
-    private Integer studentId;
-    private Integer moduleId;
-    private LocalDate date;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @ManyToOne
+    @JoinColumn(name = "student_id")
+    private Student student;
+    @ManyToOne
+    @JoinColumn(name = "module_id")
+    private Module module;
+    private java.time.LocalDate enrollmentDate;
+    private Double finalGrade;
 }
