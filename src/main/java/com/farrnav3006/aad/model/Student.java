@@ -12,7 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "students")
 
 public class Student {
     @Id
@@ -22,9 +21,15 @@ public class Student {
     private String nif;
     private String name;
     private String email;
+    private String course;
 
-    @OneToMany(mappedBy = "student")
+    @ToString.Exclude
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private List<Enrollment> enrollments;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "profile_id")
+    private Profile profile;
 
 }
 

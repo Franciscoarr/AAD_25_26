@@ -129,7 +129,6 @@ Para ejecutar el método `run()`, debemos tener este código en nuestra clase pr
 ```java
 package com.farrnav3006.aad;
 
-import com.farrnav3006.aad.application.StudentManagementService;
 import com.farrnav3006.aad.config.PostgresqlDriver;
 import com.farrnav3006.aad.model.Student;
 import com.farrnav3006.aad.model.Module;

@@ -1,116 +1,13 @@
 package com.farrnav3006.aad.repository;
 
 import com.farrnav3006.aad.model.Student;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.sql.PreparedStatement;
-import java.util.List;
+import java.util.Optional;
 
-@Repository
-@Slf4j
-@RequiredArgsConstructor
-public class StudentRepository implements CrudRepository<Student> {
-    // SQL statements
-    private static final String SQL_INSERT = """
-            INSERT INTO alumno (nif, nombre, email)
-            VALUES (?, ?, ?)
-            """;
-    private static final String SQL_FINDALL = """
-            SELECT *
-            FROM alumno
-            """;
-    private static final String SQL_FINDBYID = """
-            SELECT *
-            FROM alumno
-            WHERE id_alumno = ?
-            """;
-    private static final String SQL_UPDATE = """
-            UPDATE alumno
-            SET nif = ?, nombre = ?, email = ?
-            WHERE id_alumno = ?
-            """;
-    private static final String SQL_DELETE = """
-            DELETE FROM alumno
-            WHERE id_alumno = ?
-            """;
-    private final JdbcTemplate jdbcTemplate;
+public interface StudentRepository extends JpaRepository<Student, Integer> {
 
-    @Override
-    public Student insert(Student s) {
-        if (s == null) throw new IllegalArgumentException("Student cannot be null");
+    Optional<Student> findByNif(String nif);
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, new String[] {"id_alumno"});
-            ps.setString(1, s.getNif());
-            ps.setString(2, s.getName());
-            ps.setString(3, s.getEmail());
-            return ps;
-        }, keyHolder);
-
-        Number key = keyHolder.getKey();
-        if (key != null) {
-            s.setId(key.intValue());
-        }
-
-        log.info("create OK: {}", s);
-        return s;
-    }
-
-    @Override
-    public List<Student> findAll() {
-        List<Student> students = jdbcTemplate.query(
-                SQL_FINDALL,
-                (rs, rowNum) -> new Student(
-                        rs.getInt("id_alumno"),
-                        rs.getString("nif"),
-                        rs.getString("nombre"),
-                        rs.getString("email")
-                )
-        );
-
-        log.info("FindAll Students OK");
-        return students;
-    }
-
-    @Override
-    public Student findById(int id) {
-        List<Student> students = jdbcTemplate.query(
-                SQL_FINDBYID,
-                (rs, rowNum) -> new Student(
-                        rs.getInt("id_alumno"),
-                        rs.getString("nif"),
-                        rs.getString("nombre"),
-                        rs.getString("email")
-                ),
-                id
-        );
-        log.info("FindById Students OK id={}", id);
-        return students.isEmpty() ? null : students.get(0);
-    }
-
-    @Override
-    public Student update(Student student) {
-        int updated = jdbcTemplate.update(SQL_UPDATE, student.getNif(), student.getName(),
-                student.getEmail(), student.getId());
-        if (updated == 0) {
-            throw new RuntimeException("Student not found for update: id=" + student.getId());
-        }
-        log.info("Update Students OK id={}", student.getId());
-        return student;
-    }
-
-    @Override
-    public boolean delete(int id) {
-        int deleted = jdbcTemplate.update(SQL_DELETE, id);
-        log.info("Delete Students OK id={}", id);
-        return deleted > 0;
-    }
 }
 
