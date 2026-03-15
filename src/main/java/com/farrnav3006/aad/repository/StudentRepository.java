@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface StudentRepository extends JpaRepository<Student, Integer> {
 
+    //Spring genera automáticamente save(), findAll(), findById(), deleteById(), etc
+
     Optional<Student> findByNif(String nif);
 
 }
