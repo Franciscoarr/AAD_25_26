@@ -1,0 +1,21 @@
+server:
+  port: 8100
+spring:
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+  datasource:
+    url: jdbc:postgresql://localhost:5432/kafka_db
+    username: postgres
+    password: postgres
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+
